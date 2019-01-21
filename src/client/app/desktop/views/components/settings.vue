@@ -32,13 +32,6 @@
 					<span slot="desc">{{ $t('auto-popout-desc') }}</span>
 				</ui-switch>
 				<ui-switch v-model="deckNav">{{ $t('deck-nav') }}<span slot="desc">{{ $t('deck-nav-desc') }}</span></ui-switch>
-
-				<details>
-					<summary>{{ $t('advanced') }}</summary>
-					<ui-switch v-model="apiViaStream">{{ $t('api-via-stream') }}
-						<span slot="desc">{{ $t('api-via-stream-desc') }}</span>
-					</ui-switch>
-				</details>
 			</section>
 
 			<section>
@@ -203,7 +196,7 @@
 		</ui-card>
 
 		<ui-card class="2fa" v-show="page == 'security'">
-			<div slot="title"><fa icon="mobile-alt"/> {{ $t('2fa') }}</div>
+			<div slot="title"><fa icon="mobile-alt"/> {{ $t('@.2fa') }}</div>
 			<section>
 				<x-2fa/>
 			</section>
@@ -331,11 +324,6 @@ export default Vue.extend({
 		reduceMotion: {
 			get() { return this.$store.state.device.reduceMotion; },
 			set(value) { this.$store.commit('device/set', { key: 'reduceMotion', value }); }
-		},
-
-		apiViaStream: {
-			get() { return this.$store.state.device.apiViaStream; },
-			set(value) { this.$store.commit('device/set', { key: 'apiViaStream', value }); }
 		},
 
 		autoPopout: {
