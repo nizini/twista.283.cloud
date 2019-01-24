@@ -27,6 +27,7 @@ common:
   do-not-copy-paste: "ここにコードを入力したり張り付けたりしないでください。アカウントが不正利用される可能性があります。"
   load-more: "もっと読み込む"
   enter-password: "パスワードを入力してください"
+  2fa: "二段階認証"
 
   got-it: "わかった"
   customization-tips:
@@ -378,6 +379,18 @@ common/views/components/note-menu.vue:
   delete: "削除"
   delete-confirm: "この投稿を削除しますか？"
   remote: "投稿元で見る"
+
+common/views/components/user-menu.vue:
+  mention: "メンション"
+  mute: "ミュート"
+  unmute: "ミュート解除"
+  block: "ブロック"
+  unblock: "ブロック解除"
+  push-to-list: "リストに追加"
+  select-list: "リストを選択してください"
+  report-abuse: "スパムを報告"
+  report-abuse-detail: "どのような迷惑行為を行っていますか？"
+  report-abuse-reported: "管理者に報告されました。ご協力ありがとうございました。"
 
 common/views/components/poll.vue:
   vote-to: "「{}」に投票する"
