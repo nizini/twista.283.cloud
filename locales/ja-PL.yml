@@ -856,6 +856,7 @@ desktop/views/components/settings.vue:
   signin: "サインイン履歴"
   password: "パスワード"
   2fa: "二段階認証"
+  emoji: "カスタム絵文字"
   other: "その他"
   license: "ライセンス"
   theme: "テーマ"
