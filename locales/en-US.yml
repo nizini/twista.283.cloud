@@ -773,6 +773,7 @@ desktop/views/components/settings.vue:
   security: "Security"
   signin: "Sign in history"
   password: "Password"
+  emoji: "Emoji"
   other: "Other"
   license: "License"
   theme: "Theme"

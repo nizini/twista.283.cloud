@@ -11,6 +11,7 @@
 		<p :class="{ active: page == 'apps' }" @mousedown="page = 'apps'"><fa icon="puzzle-piece" fixed-width/>{{ $t('apps') }}</p>
 		<p :class="{ active: page == 'security' }" @mousedown="page = 'security'"><fa icon="unlock-alt" fixed-width/>{{ $t('security') }}</p>
 		<p :class="{ active: page == 'api' }" @mousedown="page = 'api'"><fa icon="key" fixed-width/>API</p>
+		<p :class="{ active: page == 'emoji' }" @mousedown="page = 'emoji'"><fa :icon="faGrin" fixed-width/>{{ $t('emoji') }}</p>
 		<p :class="{ active: page == 'other' }" @mousedown="page = 'other'"><fa icon="cogs" fixed-width/>{{ $t('other') }}</p>
 	</div>
 	<div class="pages">
@@ -213,6 +214,10 @@
 			<x-api-settings/>
 		</div>
 
+		<div class="emoji" v-show="page == 'emoji'">
+			<x-emoji-settings/>
+		</div>
+
 		<ui-card class="other" v-show="page == 'other'">
 			<div slot="title"><fa icon="info-circle"/> {{ $t('about') }}</div>
 			<section>
@@ -274,9 +279,11 @@ import XProfileEditor from '../../../common/views/components/profile-editor.vue'
 import XApiSettings from '../../../common/views/components/api-settings.vue';
 import XLanguageSettings from '../../../common/views/components/language-settings.vue';
 import XNotificationSettings from '../../../common/views/components/notification-settings.vue';
+import XEmojiSettings from '../../../admin/views/emoji.vue';
 
 import { url, clientVersion as version } from '../../../config';
 import checkForUpdate from '../../../common/scripts/check-for-update';
+import { faGrin } from '@fortawesome/free-regular-svg-icons';
 
 export default Vue.extend({
 	i18n: i18n('desktop/views/components/settings.vue'),
@@ -294,6 +301,7 @@ export default Vue.extend({
 		XApiSettings,
 		XLanguageSettings,
 		XNotificationSettings,
+		XEmojiSettings,
 	},
 	props: {
 		initialPage: {
@@ -312,7 +320,8 @@ export default Vue.extend({
 			meta: null,
 			version,
 			latestVersion: undefined,
-			checkingForUpdate: false
+			checkingForUpdate: false,
+			faGrin
 		};
 	},
 	computed: {

@@ -9,7 +9,7 @@ export const meta = {
 	},
 
 	requireCredential: true,
-	requireModerator: true,
+	requireModerator: false,
 
 	params: {
 		id: {
