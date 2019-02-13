@@ -1,14 +1,16 @@
-import $ from 'cafy'; import ID, { transform } from '../../../../misc/cafy-id';
+import $ from 'cafy';
+import ID, { transform } from '../../../../misc/cafy-id';
 import User, { isValidName, isValidDescription, isValidLocation, isValidBirthday, pack } from '../../../../models/user';
-import { publishMainStream } from '../../../../stream';
+import { publishMainStream } from '../../../../services/stream';
 import DriveFile from '../../../../models/drive-file';
 import acceptAllFollowRequests from '../../../../services/following/requests/accept-all';
 import { publishToFollowers } from '../../../../services/i/update';
 import define from '../../define';
 import getDriveFileUrl from '../../../../misc/get-drive-file-url';
-import parse from '../../../../mfm/parse';
+import { parse, parsePlain } from '../../../../mfm/parse';
 import extractEmojis from '../../../../misc/extract-emojis';
-const langmap = require('langmap');
+import extractHashtags from '../../../../misc/extract-hashtags';
+import * as langmap from 'langmap';
 
 export const meta = {
 	desc: {
@@ -22,42 +24,42 @@ export const meta = {
 
 	params: {
 		name: {
-			validator: $.str.optional.nullable.pipe(isValidName),
+			validator: $.optional.nullable.str.pipe(isValidName),
 			desc: {
 				'ja-JP': '名前(ハンドルネームやニックネーム)'
 			}
 		},
 
 		description: {
-			validator: $.str.optional.nullable.pipe(isValidDescription),
+			validator: $.optional.nullable.str.pipe(isValidDescription),
 			desc: {
 				'ja-JP': 'アカウントの説明や自己紹介'
 			}
 		},
 
 		lang: {
-			validator: $.str.optional.nullable.or(Object.keys(langmap)),
+			validator: $.optional.nullable.str.or(Object.keys(langmap)),
 			desc: {
 				'ja-JP': '言語'
 			}
 		},
 
 		location: {
-			validator: $.str.optional.nullable.pipe(isValidLocation),
+			validator: $.optional.nullable.str.pipe(isValidLocation),
 			desc: {
 				'ja-JP': '住んでいる地域、所在'
 			}
 		},
 
 		birthday: {
-			validator: $.str.optional.nullable.pipe(isValidBirthday),
+			validator: $.optional.nullable.str.pipe(isValidBirthday),
 			desc: {
 				'ja-JP': '誕生日 (YYYY-MM-DD形式)'
 			}
 		},
 
 		avatarId: {
-			validator: $.type(ID).optional.nullable,
+			validator: $.optional.nullable.type(ID),
 			transform: transform,
 			desc: {
 				'ja-JP': 'アイコンに設定する画像のドライブファイルID'
@@ -65,7 +67,7 @@ export const meta = {
 		},
 
 		bannerId: {
-			validator: $.type(ID).optional.nullable,
+			validator: $.optional.nullable.type(ID),
 			transform: transform,
 			desc: {
 				'ja-JP': 'バナーに設定する画像のドライブファイルID'
@@ -73,7 +75,7 @@ export const meta = {
 		},
 
 		wallpaperId: {
-			validator: $.type(ID).optional.nullable,
+			validator: $.optional.nullable.type(ID),
 			transform: transform,
 			desc: {
 				'ja-JP': '壁紙に設定する画像のドライブファイルID'
@@ -81,49 +83,49 @@ export const meta = {
 		},
 
 		isLocked: {
-			validator: $.bool.optional,
+			validator: $.optional.bool,
 			desc: {
 				'ja-JP': '鍵アカウントか否か'
 			}
 		},
 
 		carefulBot: {
-			validator: $.bool.optional,
+			validator: $.optional.bool,
 			desc: {
 				'ja-JP': 'Botからのフォローを承認制にするか'
 			}
 		},
 
 		autoAcceptFollowed: {
-			validator: $.bool.optional,
+			validator: $.optional.bool,
 			desc: {
 				'ja-JP': 'フォローしているユーザーからのフォローリクエストを自動承認するか'
 			}
 		},
 
 		isBot: {
-			validator: $.bool.optional,
+			validator: $.optional.bool,
 			desc: {
 				'ja-JP': 'Botか否か'
 			}
 		},
 
 		isCat: {
-			validator: $.bool.optional,
+			validator: $.optional.bool,
 			desc: {
 				'ja-JP': '猫か否か'
 			}
 		},
 
 		autoWatch: {
-			validator: $.bool.optional,
+			validator: $.optional.bool,
 			desc: {
 				'ja-JP': '投稿の自動ウォッチをするか否か'
 			}
 		},
 
 		alwaysMarkNsfw: {
-			validator: $.bool.optional,
+			validator: $.optional.bool,
 			desc: {
 				'ja-JP': 'アップロードするメディアをデフォルトで「閲覧注意」として設定するか'
 			}
@@ -201,21 +203,24 @@ export default define(meta, (ps, user, app) => new Promise(async (res, rej) => {
 		}
 	}
 
-	//#region emojis
+	//#region emojis/tags
 	if (updates.name != null || updates.description != null) {
 		let emojis = [] as string[];
+		let tags = [] as string[];
 
 		if (updates.name != null) {
-			const tokens = parse(updates.name, true);
+			const tokens = parsePlain(updates.name);
 			emojis = emojis.concat(extractEmojis(tokens));
 		}
 
 		if (updates.description != null) {
 			const tokens = parse(updates.description);
 			emojis = emojis.concat(extractEmojis(tokens));
+			tags = extractHashtags(tokens);
 		}
 
 		updates.emojis = emojis;
+		updates.tags = tags;
 	}
 	//#endregion
 

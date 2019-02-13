@@ -1,7 +1,8 @@
-import $ from 'cafy'; import ID, { transform } from '../../../../../misc/cafy-id';
+import $ from 'cafy';
+import ID, { transform } from '../../../../../misc/cafy-id';
 import DriveFolder from '../../../../../models/drive-folder';
 import DriveFile, { validateFileName, pack } from '../../../../../models/drive-file';
-import { publishDriveStream } from '../../../../../stream';
+import { publishDriveStream } from '../../../../../services/stream';
 import define from '../../../define';
 import Note from '../../../../../models/note';
 
@@ -25,7 +26,7 @@ export const meta = {
 		},
 
 		folderId: {
-			validator: $.type(ID).optional.nullable,
+			validator: $.optional.nullable.type(ID),
 			transform: transform,
 			default: undefined as any,
 			desc: {
@@ -34,7 +35,7 @@ export const meta = {
 		},
 
 		name: {
-			validator: $.str.optional.pipe(validateFileName),
+			validator: $.optional.str.pipe(validateFileName),
 			default: undefined as any,
 			desc: {
 				'ja-JP': 'ファイル名',
@@ -43,7 +44,7 @@ export const meta = {
 		},
 
 		isSensitive: {
-			validator: $.bool.optional,
+			validator: $.optional.bool,
 			default: undefined as any,
 			desc: {
 				'ja-JP': 'このメディアが「閲覧注意」(NSFW)かどうか',

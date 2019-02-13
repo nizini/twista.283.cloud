@@ -1,7 +1,7 @@
 import * as mongo from 'mongodb';
-const deepcopy = require('deepcopy');
+import * as deepcopy from 'deepcopy';
 import rap from '@prezzemolo/rap';
-import db from '../db/mongodb';
+import db, { dbLogger } from '../db/mongodb';
 import isObjectId from '../misc/is-objectid';
 import { packMany as packNoteMany } from './note';
 import Following from './following';
@@ -17,6 +17,7 @@ const User = db.get<IUser>('users');
 
 User.createIndex('username');
 User.createIndex('usernameLower');
+User.createIndex('host');
 User.createIndex(['username', 'host'], { unique: true });
 User.createIndex(['usernameLower', 'host'], { unique: true });
 User.createIndex('token', { sparse: true, unique: true });
@@ -48,11 +49,17 @@ type IUserBase = {
 	lang?: string;
 	pinnedNoteIds: mongo.ObjectID[];
 	emojis?: string[];
+	tags?: string[];
 
 	/**
 	 * 凍結されているか否か
 	 */
 	isSuspended: boolean;
+
+	/**
+	 * サイレンスされているか否か
+	 */
+	isSilenced: boolean;
 
 	/**
 	 * 鍵アカウントか否か
@@ -280,7 +287,7 @@ export const pack = (
 
 	// (データベースの欠損などで)ユーザーがデータベース上に見つからなかったとき
 	if (_user == null) {
-		console.warn(`user not found on database: ${user}`);
+		dbLogger.warn(`user not found on database: ${user}`);
 		return resolve(null);
 	}
 
@@ -306,6 +313,7 @@ export const pack = (
 		delete _user.password;
 		delete _user.token;
 		delete _user.twoFactorTempSecret;
+		delete _user.two_factor_temp_secret; // 後方互換性のため
 		delete _user.twoFactorSecret;
 		if (_user.twitter) {
 			delete _user.twitter.accessToken;

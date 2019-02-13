@@ -9,15 +9,22 @@ import 'showdown-highlightjs-extension';
 import ms = require('ms');
 import * as Router from 'koa-router';
 import * as send from 'koa-send';
-import { Context, ObjectContext } from 'cafy';
 import * as glob from 'glob';
 import * as yaml from 'js-yaml';
 import config from '../../config';
 import { licenseHtml } from '../../misc/license';
-const constants = require('../../const.json');
+import { copyright } from '../../const.json';
 import endpoints from '../api/endpoints';
-const locales = require('../../../locales');
-const nestedProperty = require('nested-property');
+import * as locales from '../../../locales';
+import * as nestedProperty from 'nested-property';
+
+function getLang(lang: string): string {
+	if (['en-US', 'ja-JP'].includes(lang)) {
+		return lang;
+	} else {
+		return 'en-US';
+	}
+}
 
 async function genVars(lang: string): Promise<{ [key: string]: any }> {
 	const vars = {} as { [key: string]: any };
@@ -51,7 +58,7 @@ async function genVars(lang: string): Promise<{ [key: string]: any }> {
 
 	vars['config'] = config;
 
-	vars['copyright'] = constants.copyright;
+	vars['copyright'] = copyright;
 
 	vars['license'] = licenseHtml;
 
@@ -113,29 +120,8 @@ const parsePropDefinition = (key: string, prop: any) => {
 	return prop;
 };
 
-const sortParams = (params: Array<{ name: string }>) => {
+const sortParams = (params: { name: string }[]) => {
 	return params;
-};
-
-// WIP type
-const extractParamDefRef = (params: Context[]) => {
-	let defs: any[] = [];
-
-	for (const param of params) {
-		if (param.data && param.data.ref) {
-			const props = (param as ObjectContext<any>).props;
-			defs.push({
-				name: param.data.ref,
-				params: sortParams(Object.keys(props).map(k => parseParamDefinition(k, props[k])))
-			});
-
-			const childDefs = extractParamDefRef(Object.keys(props).map(k => props[k]));
-
-			defs = defs.concat(childDefs);
-		}
-	}
-
-	return sortParams(defs);
 };
 
 const extractPropDefRef = (props: any[]) => {
@@ -167,7 +153,7 @@ router.get('/assets/*', async ctx => {
 });
 
 router.get('/*/api/endpoints/*', async ctx => {
-	const lang = ctx.params[0];
+	const lang = getLang(ctx.params[0]);
 	const name = ctx.params[1];
 	const ep = endpoints.find(e => e.name === name);
 
@@ -181,7 +167,6 @@ router.get('/*/api/endpoints/*', async ctx => {
 		},
 		// @ts-ignore
 		params: ep.meta.params ? sortParams(Object.entries(ep.meta.params).map(([k, v]) => parseParamDefinition(k, v))) : null,
-		paramDefs: ep.meta.params ? extractParamDefRef(Object.values(ep.meta.params).map(x => x.validator)) : null,
 		res: ep.meta.res,
 		resProps: ep.meta.res && ep.meta.res.props ? sortParams(Object.entries(ep.meta.res.props).map(([k, v]) => parsePropDefinition(k, v))) : null,
 		resDefs: null as any, //extractPropDefRef(Object.entries(ep.res.props).map(([k, v]) => parsePropDefinition(k, v)))
@@ -194,7 +179,7 @@ router.get('/*/api/endpoints/*', async ctx => {
 });
 
 router.get('/*/api/entities/*', async ctx => {
-	const lang = ctx.params[0];
+	const lang = getLang(ctx.params[0]);
 	const entity = ctx.params[1];
 
 	const x = yaml.safeLoad(fs.readFileSync(path.resolve(`${__dirname}/../../../src/docs/api/entities/${entity}.yaml`), 'utf-8'));
@@ -211,7 +196,7 @@ router.get('/*/api/entities/*', async ctx => {
 });
 
 router.get('/*/*', async ctx => {
-	const lang = ctx.params[0];
+	const lang = getLang(ctx.params[0]);
 	const doc = ctx.params[1];
 
 	showdown.extension('urlExtension', () => ({

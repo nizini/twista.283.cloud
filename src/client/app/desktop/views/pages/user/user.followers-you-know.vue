@@ -64,6 +64,8 @@ export default Vue.extend({
 			margin 4px
 
 			> img
+				display inline-block
+				text-align center
 				width 48px
 				height 48px
 				vertical-align bottom
@@ -74,7 +76,7 @@ export default Vue.extend({
 		margin 0
 		padding 16px
 		text-align center
-		color #aaa
+		color var(--text)
 
 		> i
 			margin-right 4px

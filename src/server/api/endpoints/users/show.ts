@@ -1,7 +1,9 @@
-import $ from 'cafy'; import ID, { transform, transformMany } from '../../../../misc/cafy-id';
+import $ from 'cafy';
+import ID, { transform, transformMany } from '../../../../misc/cafy-id';
 import User, { pack, isRemoteUser } from '../../../../models/user';
 import resolveRemoteUser from '../../../../remote/resolve-user';
 import define from '../../define';
+import { apiLogger } from '../../logger';
 
 const cursorOption = { fields: { data: false } };
 
@@ -14,7 +16,7 @@ export const meta = {
 
 	params: {
 		userId: {
-			validator: $.type(ID).optional,
+			validator: $.optional.type(ID),
 			transform: transform,
 			desc: {
 				'ja-JP': '対象のユーザーのID',
@@ -23,7 +25,7 @@ export const meta = {
 		},
 
 		userIds: {
-			validator: $.arr($.type(ID)).optional.unique(),
+			validator: $.optional.arr($.type(ID)).unique(),
 			transform: transformMany,
 			desc: {
 				'ja-JP': 'ユーザーID (配列)'
@@ -31,11 +33,11 @@ export const meta = {
 		},
 
 		username: {
-			validator: $.str.optional
+			validator: $.optional.str
 		},
 
 		host: {
-			validator: $.str.optional.nullable
+			validator: $.optional.nullable.str
 		}
 	}
 };
@@ -59,7 +61,7 @@ export default define(meta, (ps, me) => new Promise(async (res, rej) => {
 			try {
 				user = await resolveRemoteUser(ps.username, ps.host, cursorOption);
 			} catch (e) {
-				console.warn(`failed to resolve remote user: ${e}`);
+				apiLogger.warn(`failed to resolve remote user: ${e}`);
 				return rej('failed to resolve remote user');
 			}
 		} else {

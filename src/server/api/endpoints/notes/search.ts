@@ -4,6 +4,7 @@ import Note from '../../../../models/note';
 import { packMany } from '../../../../models/note';
 import es from '../../../../db/elasticsearch';
 import define from '../../define';
+import { apiLogger } from '../../logger';
 
 export const meta = {
 	desc: {
@@ -19,12 +20,12 @@ export const meta = {
 		},
 
 		limit: {
-			validator: $.num.optional.range(1, 100),
+			validator: $.optional.num.range(1, 100),
 			default: 10
 		},
 
 		offset: {
-			validator: $.num.optional.min(0),
+			validator: $.optional.num.min(0),
 			default: 0
 		}
 	}
@@ -52,7 +53,7 @@ export default define(meta, (ps, me) => new Promise(async (res, rej) => {
 		}
 	}, async (error, response) => {
 		if (error) {
-			console.error(error);
+			apiLogger.error(error);
 			return res(500);
 		}
 

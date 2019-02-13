@@ -1,8 +1,10 @@
-const ms = require('ms');
-import $ from 'cafy'; import ID, { transform } from '../../../../../misc/cafy-id';
+import * as ms from 'ms';
+import $ from 'cafy';
+import ID, { transform } from '../../../../../misc/cafy-id';
 import { validateFileName, pack } from '../../../../../models/drive-file';
 import create from '../../../../../services/drive/add-file';
 import define from '../../../define';
+import { apiLogger } from '../../../logger';
 
 export const meta = {
 	desc: {
@@ -23,7 +25,7 @@ export const meta = {
 
 	params: {
 		folderId: {
-			validator: $.type(ID).optional.nullable,
+			validator: $.optional.nullable.type(ID),
 			transform: transform,
 			default: null as any,
 			desc: {
@@ -32,7 +34,7 @@ export const meta = {
 		},
 
 		isSensitive: {
-			validator: $.or($.bool, $.str).optional,
+			validator: $.optional.or($.bool, $.str),
 			default: false,
 			transform: (v: any): boolean => v === true || v === 'true',
 			desc: {
@@ -42,7 +44,7 @@ export const meta = {
 		},
 
 		force: {
-			validator: $.or($.bool, $.str).optional,
+			validator: $.optional.or($.bool, $.str),
 			default: false,
 			transform: (v: any): boolean => v === true || v === 'true',
 			desc: {
@@ -76,7 +78,7 @@ export default define(meta, (ps, user, app, file, cleanup) => new Promise(async 
 
 		res(pack(driveFile, { self: true }));
 	} catch (e) {
-		console.error(e);
+		apiLogger.error(e);
 
 		cleanup();
 

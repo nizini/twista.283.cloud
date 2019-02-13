@@ -1,8 +1,10 @@
-import $ from 'cafy'; import ID, { transform } from '../../../../misc/cafy-id';
+import $ from 'cafy';
+import ID, { transform } from '../../../../misc/cafy-id';
 import Note from '../../../../models/note';
 import User, { pack } from '../../../../models/user';
 import define from '../../define';
 import { maximum } from '../../../../prelude/array';
+import { getHideUserIds } from '../../common/get-hide-users';
 
 export const meta = {
 	requireCredential: false,
@@ -18,7 +20,7 @@ export const meta = {
 		},
 
 		limit: {
-			validator: $.num.optional.range(1, 100),
+			validator: $.optional.num.range(1, 100),
 			default: 10
 		},
 	}
@@ -61,12 +63,15 @@ export default define(meta, (ps, me) => new Promise(async (res, rej) => {
 		return res([]);
 	}
 
+	const hideUserIds = await getHideUserIds(me);
+	hideUserIds.push(user._id);
+
 	const replyTargetNotes = await Note.find({
 		_id: {
 			$in: recentNotes.map(p => p.replyId)
 		},
 		userId: {
-			$ne: user._id
+			$nin: hideUserIds
 		}
 	}, {
 		fields: {

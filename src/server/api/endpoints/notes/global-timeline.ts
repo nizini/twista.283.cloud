@@ -1,10 +1,11 @@
-import $ from 'cafy'; import ID, { transform } from '../../../../misc/cafy-id';
+import $ from 'cafy';
+import ID, { transform } from '../../../../misc/cafy-id';
 import Note from '../../../../models/note';
-import Mute from '../../../../models/mute';
 import { packMany } from '../../../../models/note';
 import define from '../../define';
 import { countIf } from '../../../../prelude/array';
 import fetchMeta from '../../../../misc/fetch-meta';
+import { getHideUserIds } from '../../common/get-hide-users';
 
 export const meta = {
 	desc: {
@@ -13,40 +14,40 @@ export const meta = {
 
 	params: {
 		withFiles: {
-			validator: $.bool.optional,
+			validator: $.optional.bool,
 			desc: {
 				'ja-JP': 'ファイルが添付された投稿に限定するか否か'
 			}
 		},
 
 		mediaOnly: {
-			validator: $.bool.optional,
+			validator: $.optional.bool,
 			desc: {
 				'ja-JP': 'ファイルが添付された投稿に限定するか否か (このパラメータは廃止予定です。代わりに withFiles を使ってください。)'
 			}
 		},
 
 		limit: {
-			validator: $.num.optional.range(1, 100),
+			validator: $.optional.num.range(1, 100),
 			default: 10
 		},
 
 		sinceId: {
-			validator: $.type(ID).optional,
+			validator: $.optional.type(ID),
 			transform: transform,
 		},
 
 		untilId: {
-			validator: $.type(ID).optional,
+			validator: $.optional.type(ID),
 			transform: transform,
 		},
 
 		sinceDate: {
-			validator: $.num.optional
+			validator: $.optional.num
 		},
 
 		untilDate: {
-			validator: $.num.optional
+			validator: $.optional.num
 		},
 	}
 };
@@ -64,10 +65,8 @@ export default define(meta, (ps, user) => new Promise(async (res, rej) => {
 		return rej('only one of sinceId, untilId, sinceDate, untilDate can be specified');
 	}
 
-	// ミュートしているユーザーを取得
-	const mutedUserIds = user ? (await Mute.find({
-		muterId: user._id
-	})).map(m => m.muteeId) : null;
+	// 隠すユーザーを取得
+	const hideUserIds = await getHideUserIds(user);
 
 	//#region Construct query
 	const sort = {
@@ -83,17 +82,17 @@ export default define(meta, (ps, user) => new Promise(async (res, rej) => {
 		replyId: null
 	} as any;
 
-	if (mutedUserIds && mutedUserIds.length > 0) {
+	if (hideUserIds && hideUserIds.length > 0) {
 		query.userId = {
-			$nin: mutedUserIds
+			$nin: hideUserIds
 		};
 
 		query['_reply.userId'] = {
-			$nin: mutedUserIds
+			$nin: hideUserIds
 		};
 
 		query['_renote.userId'] = {
-			$nin: mutedUserIds
+			$nin: hideUserIds
 		};
 	}
 

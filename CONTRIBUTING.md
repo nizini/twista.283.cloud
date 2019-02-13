@@ -38,3 +38,37 @@ Stands for _**M**iss**k**ey_.
 
 ### SW
 Stands for _**S**ervice**W**orker_.
+
+### Nyaize
+な を にゃ にすること
+
+#### Denyaize
+Nyaizeを解除すること
+
+## Code style
+### Don't use `export default`
+Bad:
+``` ts
+export default function(foo: string): string {
+```
+
+Good:
+``` ts
+export function something(foo: string): string {
+```
+
+## Directory structure
+```
+src ... ソースコード
+	@types ... 外部ライブラリなどの型定義
+	prelude ... Misskeyに関係ないかつ副作用なし
+	misc ... 副作用なしのユーティリティ処理
+	service ... 副作用ありの共通処理
+	queue ... ジョブキューとジョブ
+	server ... Webサーバー
+	client ... クライアント
+	mfm ... MFM
+
+test ... テスト
+
+```

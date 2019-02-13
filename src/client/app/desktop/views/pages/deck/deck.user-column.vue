@@ -20,6 +20,7 @@
 					<mk-user-name :user="user"/>
 				</span>
 				<span class="acct">@{{ user | acct }} <fa v-if="user.isLocked == true" class="locked" icon="lock" fixed-width/></span>
+				<span class="followed" v-if="user.isFollowed">{{ $t('follows-you') }}</span>
 			</div>
 		</header>
 		<div class="info">
@@ -99,7 +100,7 @@ import XNotes from './deck.notes.vue';
 import XNote from '../../components/note.vue';
 import XUserMenu from '../../../../common/views/components/user-menu.vue';
 import { concat } from '../../../../../../prelude/array';
-import * as ApexCharts from 'apexcharts';
+import ApexCharts from 'apexcharts';
 
 const fetchLimit = 10;
 
@@ -376,12 +377,22 @@ export default Vue.extend({
 				text-shadow 0 0 8px #000
 
 			> .acct
+				display block
 				font-size 14px
 				opacity 0.7
 				text-shadow 0 0 8px #000
 
 				> .locked
 					opacity 0.8
+
+			> .followed
+				display inline-block
+				font-size 12px
+				background rgba(0, 0, 0, 0.5)
+				opacity 0.7
+				margin-top: 2px
+				padding 4px
+				border-radius 4px
 
 	> .info
 		padding 16px

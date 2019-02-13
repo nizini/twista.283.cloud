@@ -1,9 +1,10 @@
-import $ from 'cafy'; import ID, { transform } from '../../../../misc/cafy-id';
+import $ from 'cafy';
+import ID, { transform } from '../../../../misc/cafy-id';
 import Note from '../../../../models/note';
-import Mute from '../../../../models/mute';
 import { getFriendIds } from '../../common/get-friends';
 import { packMany } from '../../../../models/note';
 import define from '../../define';
+import { getHideUserIds } from '../../common/get-hide-users';
 
 export const meta = {
 	desc: {
@@ -12,31 +13,31 @@ export const meta = {
 
 	params: {
 		tag: {
-			validator: $.str.optional,
+			validator: $.optional.str,
 			desc: {
 				'ja-JP': 'タグ'
 			}
 		},
 
 		query: {
-			validator: $.arr($.arr($.str)).optional,
+			validator: $.optional.arr($.arr($.str)),
 			desc: {
 				'ja-JP': 'クエリ'
 			}
 		},
 
 		following: {
-			validator: $.bool.optional.nullable,
+			validator: $.optional.nullable.bool,
 			default: null as any
 		},
 
 		mute: {
-			validator: $.str.optional,
+			validator: $.optional.str,
 			default: 'mute_all'
 		},
 
 		reply: {
-			validator: $.bool.optional.nullable,
+			validator: $.optional.nullable.bool,
 			default: null as any,
 			desc: {
 				'ja-JP': '返信に限定するか否か'
@@ -44,7 +45,7 @@ export const meta = {
 		},
 
 		renote: {
-			validator: $.bool.optional.nullable,
+			validator: $.optional.nullable.bool,
 			default: null as any,
 			desc: {
 				'ja-JP': 'Renoteに限定するか否か'
@@ -52,14 +53,14 @@ export const meta = {
 		},
 
 		withFiles: {
-			validator: $.bool.optional,
+			validator: $.optional.bool,
 			desc: {
 				'ja-JP': 'true にすると、ファイルが添付された投稿だけ取得します'
 			}
 		},
 
 		media: {
-			validator: $.bool.optional.nullable,
+			validator: $.optional.nullable.bool,
 			default: null as any,
 			desc: {
 				'ja-JP': 'ファイルが添付された投稿に限定するか否か (このパラメータは廃止予定です。代わりに withFiles を使ってください。)'
@@ -67,7 +68,7 @@ export const meta = {
 		},
 
 		poll: {
-			validator: $.bool.optional.nullable,
+			validator: $.optional.nullable.bool,
 			default: null as any,
 			desc: {
 				'ja-JP': 'アンケートが添付された投稿に限定するか否か'
@@ -75,7 +76,7 @@ export const meta = {
 		},
 
 		untilId: {
-			validator: $.type(ID).optional,
+			validator: $.optional.type(ID),
 			transform: transform,
 			desc: {
 				'ja-JP': '指定すると、この投稿を基点としてより古い投稿を取得します'
@@ -83,20 +84,20 @@ export const meta = {
 		},
 
 		sinceDate: {
-			validator: $.num.optional,
+			validator: $.optional.num,
 		},
 
 		untilDate: {
-			validator: $.num.optional,
+			validator: $.optional.num,
 		},
 
 		offset: {
-			validator: $.num.optional.min(0),
+			validator: $.optional.num.min(0),
 			default: 0
 		},
 
 		limit: {
-			validator: $.num.optional.range(1, 30),
+			validator: $.optional.num.range(1, 30),
 			default: 10
 		},
 	}
@@ -143,47 +144,43 @@ export default define(meta, (ps, me) => new Promise(async (res, rej) => {
 	}
 
 	if (me != null) {
-		const mutes = await Mute.find({
-			muterId: me._id,
-			deletedAt: { $exists: false }
-		});
-		const mutedUserIds = mutes.map(m => m.muteeId);
+		const hideUserIds = await getHideUserIds(me);
 
 		switch (ps.mute) {
 			case 'mute_all':
 				push({
 					userId: {
-						$nin: mutedUserIds
+						$nin: hideUserIds
 					},
 					'_reply.userId': {
-						$nin: mutedUserIds
+						$nin: hideUserIds
 					},
 					'_renote.userId': {
-						$nin: mutedUserIds
+						$nin: hideUserIds
 					}
 				});
 				break;
 			case 'mute_related':
 				push({
 					'_reply.userId': {
-						$nin: mutedUserIds
+						$nin: hideUserIds
 					},
 					'_renote.userId': {
-						$nin: mutedUserIds
+						$nin: hideUserIds
 					}
 				});
 				break;
 			case 'mute_direct':
 				push({
 					userId: {
-						$nin: mutedUserIds
+						$nin: hideUserIds
 					}
 				});
 				break;
 			case 'direct_only':
 				push({
 					userId: {
-						$in: mutedUserIds
+						$in: hideUserIds
 					}
 				});
 				break;
@@ -191,11 +188,11 @@ export default define(meta, (ps, me) => new Promise(async (res, rej) => {
 				push({
 					$or: [{
 						'_reply.userId': {
-							$in: mutedUserIds
+							$in: hideUserIds
 						}
 					}, {
 						'_renote.userId': {
-							$in: mutedUserIds
+							$in: hideUserIds
 						}
 					}]
 				});
@@ -204,15 +201,15 @@ export default define(meta, (ps, me) => new Promise(async (res, rej) => {
 				push({
 					$or: [{
 						userId: {
-							$in: mutedUserIds
+							$in: hideUserIds
 						}
 					}, {
 						'_reply.userId': {
-							$in: mutedUserIds
+							$in: hideUserIds
 						}
 					}, {
 						'_renote.userId': {
-							$in: mutedUserIds
+							$in: hideUserIds
 						}
 					}]
 				});

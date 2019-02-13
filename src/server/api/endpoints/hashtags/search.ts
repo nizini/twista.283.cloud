@@ -1,7 +1,7 @@
 import $ from 'cafy';
 import Hashtag from '../../../../models/hashtag';
 import define from '../../define';
-const escapeRegexp = require('escape-regexp');
+import * as escapeRegexp from 'escape-regexp';
 
 export const meta = {
 	desc: {
@@ -12,7 +12,7 @@ export const meta = {
 
 	params: {
 		limit: {
-			validator: $.num.optional.range(1, 100),
+			validator: $.optional.num.range(1, 100),
 			default: 10,
 			desc: {
 				'ja-JP': '最大数'
@@ -27,7 +27,7 @@ export const meta = {
 		},
 
 		offset: {
-			validator: $.num.optional.min(0),
+			validator: $.optional.num.min(0),
 			default: 0,
 			desc: {
 				'ja-JP': 'オフセット'

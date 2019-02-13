@@ -1,4 +1,5 @@
-import $ from 'cafy'; import ID, { transform } from '../../../../misc/cafy-id';
+import $ from 'cafy';
+import ID, { transform } from '../../../../misc/cafy-id';
 import DriveFile, { packMany } from '../../../../models/drive-file';
 import define from '../../define';
 
@@ -9,22 +10,22 @@ export const meta = {
 
 	params: {
 		limit: {
-			validator: $.num.optional.range(1, 100),
+			validator: $.optional.num.range(1, 100),
 			default: 10
 		},
 
 		sinceId: {
-			validator: $.type(ID).optional,
+			validator: $.optional.type(ID),
 			transform: transform,
 		},
 
 		untilId: {
-			validator: $.type(ID).optional,
+			validator: $.optional.type(ID),
 			transform: transform,
 		},
 
 		type: {
-			validator: $.str.optional.match(/^[a-zA-Z\/\-\*]+$/)
+			validator: $.optional.str.match(/^[a-zA-Z\/\-\*]+$/)
 		}
 	}
 };

@@ -32,7 +32,12 @@
 				<ui-switch v-model="autoPopout">{{ $t('auto-popout') }}
 					<span slot="desc">{{ $t('auto-popout-desc') }}</span>
 				</ui-switch>
-				<ui-switch v-model="deckNav">{{ $t('deck-nav') }}<span slot="desc">{{ $t('deck-nav-desc') }}</span></ui-switch>
+				<ui-switch v-model="deckNav">{{ $t('deck-nav') }}
+					<span slot="desc">{{ $t('deck-nav-desc') }}</span>
+				</ui-switch>
+				<ui-switch v-model="keepCw">{{ $t('keep-cw') }}
+					<span slot="desc">{{ $t('keep-cw-desc') }}</span>
+				</ui-switch>
 			</section>
 
 			<section>
@@ -113,6 +118,7 @@
 				<ui-switch v-model="showReplyTarget">{{ $t('show-reply-target') }}</ui-switch>
 				<ui-switch v-model="showMaps">{{ $t('show-maps') }}</ui-switch>
 				<ui-switch v-model="disableAnimatedMfm">{{ $t('@.disable-animated-mfm') }}</ui-switch>
+				<ui-switch v-model="disableShowingAnimatedImages">{{ $t('@.disable-showing-animated-images') }}</ui-switch>
 				<ui-switch v-model="remainDeletedNote">{{ $t('remain-deleted-note') }}</ui-switch>
 			</section>
 			<section>
@@ -345,6 +351,11 @@ export default Vue.extend({
 			set(value) { this.$store.commit('settings/set', { key: 'deckNav', value }); }
 		},
 
+		keepCw: {
+			get() { return this.$store.state.settings.keepCw; },
+			set(value) { this.$store.commit('settings/set', { key: 'keepCw', value }); }
+		},
+
 		darkmode: {
 			get() { return this.$store.state.device.darkmode; },
 			set(value) { this.$store.commit('device/set', { key: 'darkmode', value }); }
@@ -515,6 +526,11 @@ export default Vue.extend({
 			set(value) { this.$store.dispatch('settings/set', { key: 'disableAnimatedMfm', value }); }
 		},
 
+		disableShowingAnimatedImages: {
+			get() { return this.$store.state.device.disableShowingAnimatedImages; },
+			set(value) { this.$store.commit('device/set', { key: 'disableShowingAnimatedImages', value }); }
+		},
+
 		remainDeletedNote: {
 			get() { return this.$store.state.settings.remainDeletedNote; },
 			set(value) { this.$store.dispatch('settings/set', { key: 'remainDeletedNote', value }); }
@@ -591,6 +607,7 @@ export default Vue.extend({
 		padding 16px 0 0 0
 		overflow auto
 		z-index 1
+		font-size 15px
 
 		&.inWindow
 			box-shadow var(--shadowRight)

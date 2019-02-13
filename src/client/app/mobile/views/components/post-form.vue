@@ -28,7 +28,7 @@
 					</div>
 				</x-draggable>
 			</div>
-			<mk-poll-editor v-if="poll" ref="poll" @destroyed="poll = false"  @updated="onPollUpdate()"/>
+			<mk-poll-editor v-if="poll" ref="poll" @destroyed="poll = false" @updated="onPollUpdate()"/>
 			<mk-uploader ref="uploader" @uploaded="attachMedia" @change="onChangeUploadings"/>
 			<footer>
 				<button class="upload" @click="chooseFile"><fa icon="upload"/></button>
@@ -60,7 +60,7 @@ import insertTextAtCursor from 'insert-text-at-cursor';
 import * as XDraggable from 'vuedraggable';
 import MkVisibilityChooser from '../../../common/views/components/visibility-chooser.vue';
 import getFace from '../../../common/scripts/get-face';
-import parse from '../../../../../mfm/parse';
+import { parse } from '../../../../../mfm/parse';
 import { host } from '../../../config';
 import { erase, unique } from '../../../../../prelude/array';
 import { length } from 'stringz';
@@ -70,8 +70,7 @@ import extractMentions from '../../../../../misc/extract-mentions';
 export default Vue.extend({
 	i18n: i18n('mobile/views/components/post-form.vue'),
 	components: {
-		XDraggable,
-		MkVisibilityChooser
+		XDraggable
 	},
 
 	props: {
@@ -209,6 +208,12 @@ export default Vue.extend({
 			this.$root.api('users/show', { userId: this.reply.userId }).then(user => {
 				this.visibleUsers.push(user);
 			});
+		}
+
+		// keep cw when reply
+		if (this.$store.state.settings.keepCw && this.reply && this.reply.cw) {
+			this.useCw = true;
+			this.cw = this.reply.cw;
 		}
 
 		this.focus();

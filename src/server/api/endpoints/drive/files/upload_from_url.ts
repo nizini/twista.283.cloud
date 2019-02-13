@@ -1,5 +1,6 @@
-import $ from 'cafy'; import ID, { transform } from '../../../../../misc/cafy-id';
-const ms = require('ms');
+import $ from 'cafy';
+import ID, { transform } from '../../../../../misc/cafy-id';
+import * as ms from 'ms';
 import { pack } from '../../../../../models/drive-file';
 import uploadFromUrl from '../../../../../services/drive/upload-from-url';
 import define from '../../../define';
@@ -25,13 +26,13 @@ export const meta = {
 		},
 
 		folderId: {
-			validator: $.type(ID).optional.nullable,
+			validator: $.optional.nullable.type(ID),
 			default: null as any,
 			transform: transform
 		},
 
 		isSensitive: {
-			validator: $.bool.optional,
+			validator: $.optional.bool,
 			default: false,
 			desc: {
 				'ja-JP': 'このメディアが「閲覧注意」(NSFW)かどうか',
@@ -40,7 +41,7 @@ export const meta = {
 		},
 
 		force: {
-			validator: $.bool.optional,
+			validator: $.optional.bool,
 			default: false,
 			desc: {
 				'ja-JP': 'true にすると、同じハッシュを持つファイルが既にアップロードされていても強制的にファイルを作成します。',

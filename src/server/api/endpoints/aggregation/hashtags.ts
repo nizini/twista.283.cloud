@@ -10,7 +10,9 @@ export default define(meta, (ps) => new Promise(async (res, rej) => {
 	const instance = await fetchMeta();
 	const hidedTags = instance.hidedTags.map(t => t.toLowerCase());
 
-	const span = 1000 * 60 * 60 * 24 * 7; // 1週間
+	// 重い
+	//const span = 1000 * 60 * 60 * 24 * 7; // 1週間
+	const span = 1000 * 60 * 60 * 24; // 1日
 
 	//#region 1. 指定期間の内に投稿されたハッシュタグ(とユーザーのペア)を集計
 	const data = await Note.aggregate([{
@@ -29,22 +31,22 @@ export default define(meta, (ps) => new Promise(async (res, rej) => {
 		$group: {
 			_id: { tag: '$tagsLower', userId: '$userId' }
 		}
-	}]) as Array<{
+	}]) as {
 		_id: {
 			tag: string;
 			userId: any;
 		}
-	}>;
+	}[];
 	//#endregion
 
 	if (data.length == 0) {
 		return res([]);
 	}
 
-	let tags: Array<{
+	let tags: {
 		name: string;
 		count: number;
-	}> = [];
+	}[] = [];
 
 	// カウント
 	for (const x of data.map(x => x._id).filter(x => !hidedTags.includes(x.tag))) {

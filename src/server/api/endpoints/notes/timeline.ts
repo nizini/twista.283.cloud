@@ -1,11 +1,12 @@
-import $ from 'cafy'; import ID, { transform } from '../../../../misc/cafy-id';
+import $ from 'cafy';
+import ID, { transform } from '../../../../misc/cafy-id';
 import Note from '../../../../models/note';
-import Mute from '../../../../models/mute';
 import { getFriends } from '../../common/get-friends';
 import { packMany } from '../../../../models/note';
 import define from '../../define';
 import { countIf } from '../../../../prelude/array';
-import activeUsersChart from '../../../../chart/active-users';
+import activeUsersChart from '../../../../services/chart/active-users';
+import { getHideUserIds } from '../../common/get-hide-users';
 
 export const meta = {
 	desc: {
@@ -17,7 +18,7 @@ export const meta = {
 
 	params: {
 		limit: {
-			validator: $.num.optional.range(1, 100),
+			validator: $.optional.num.range(1, 100),
 			default: 10,
 			desc: {
 				'ja-JP': '最大数'
@@ -25,7 +26,7 @@ export const meta = {
 		},
 
 		sinceId: {
-			validator: $.type(ID).optional,
+			validator: $.optional.type(ID),
 			transform: transform,
 			desc: {
 				'ja-JP': '指定すると、この投稿を基点としてより新しい投稿を取得します'
@@ -33,7 +34,7 @@ export const meta = {
 		},
 
 		untilId: {
-			validator: $.type(ID).optional,
+			validator: $.optional.type(ID),
 			transform: transform,
 			desc: {
 				'ja-JP': '指定すると、この投稿を基点としてより古い投稿を取得します'
@@ -41,21 +42,21 @@ export const meta = {
 		},
 
 		sinceDate: {
-			validator: $.num.optional,
+			validator: $.optional.num,
 			desc: {
 				'ja-JP': '指定した時間を基点としてより新しい投稿を取得します。数値は、1970年1月1日 00:00:00 UTC から指定した日時までの経過時間をミリ秒単位で表します。'
 			}
 		},
 
 		untilDate: {
-			validator: $.num.optional,
+			validator: $.optional.num,
 			desc: {
 				'ja-JP': '指定した時間を基点としてより古い投稿を取得します。数値は、1970年1月1日 00:00:00 UTC から指定した日時までの経過時間をミリ秒単位で表します。'
 			}
 		},
 
 		includeMyRenotes: {
-			validator: $.bool.optional,
+			validator: $.optional.bool,
 			default: true,
 			desc: {
 				'ja-JP': '自分の行ったRenoteを含めるかどうか'
@@ -63,7 +64,7 @@ export const meta = {
 		},
 
 		includeRenotedMyNotes: {
-			validator: $.bool.optional,
+			validator: $.optional.bool,
 			default: true,
 			desc: {
 				'ja-JP': 'Renoteされた自分の投稿を含めるかどうか'
@@ -71,7 +72,7 @@ export const meta = {
 		},
 
 		includeLocalRenotes: {
-			validator: $.bool.optional,
+			validator: $.optional.bool,
 			default: true,
 			desc: {
 				'ja-JP': 'Renoteされたローカルの投稿を含めるかどうか'
@@ -79,14 +80,14 @@ export const meta = {
 		},
 
 		withFiles: {
-			validator: $.bool.optional,
+			validator: $.optional.bool,
 			desc: {
 				'ja-JP': 'true にすると、ファイルが添付された投稿だけ取得します'
 			}
 		},
 
 		mediaOnly: {
-			validator: $.bool.optional,
+			validator: $.optional.bool,
 			desc: {
 				'ja-JP': 'true にすると、ファイルが添付された投稿だけ取得します (このパラメータは廃止予定です。代わりに withFiles を使ってください。)'
 			}
@@ -101,15 +102,13 @@ export default define(meta, (ps, user) => new Promise(async (res, rej) => {
 		return;
 	}
 
-	const [followings, mutedUserIds] = await Promise.all([
+	const [followings, hideUserIds] = await Promise.all([
 		// フォローを取得
 		// Fetch following
 		getFriends(user._id),
 
-		// ミュートしているユーザーを取得
-		Mute.find({
-			muterId: user._id
-		}).then(ms => ms.map(m => m.muteeId))
+		// 隠すユーザーを取得
+		getHideUserIds(user)
 	]);
 
 	//#region Construct query
@@ -141,7 +140,7 @@ export default define(meta, (ps, user) => new Promise(async (res, rej) => {
 	const visibleQuery = user == null ? [{
 		visibility: { $in: [ 'public', 'home' ] }
 	}] : [{
-		visibility: { $in: [ 'public', 'home' ] }
+		visibility: { $in: [ 'public', 'home', 'followers' ] }
 	}, {
 		// myself (for specified/private)
 		userId: user._id
@@ -164,13 +163,13 @@ export default define(meta, (ps, user) => new Promise(async (res, rej) => {
 
 			// mute
 			userId: {
-				$nin: mutedUserIds
+				$nin: hideUserIds
 			},
 			'_reply.userId': {
-				$nin: mutedUserIds
+				$nin: hideUserIds
 			},
 			'_renote.userId': {
-				$nin: mutedUserIds
+				$nin: hideUserIds
 			},
 		}]
 	} as any;
