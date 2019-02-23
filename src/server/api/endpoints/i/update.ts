@@ -11,12 +11,16 @@ import { parse, parsePlain } from '../../../../mfm/parse';
 import extractEmojis from '../../../../misc/extract-emojis';
 import extractHashtags from '../../../../misc/extract-hashtags';
 import * as langmap from 'langmap';
+import { updateHashtag } from '../../../../services/update-hashtag';
+import { ApiError } from '../../error';
 
 export const meta = {
 	desc: {
 		'ja-JP': 'アカウント情報を更新します。',
 		'en-US': 'Update myself'
 	},
+
+	tags: ['account'],
 
 	requireCredential: true,
 
@@ -130,10 +134,36 @@ export const meta = {
 				'ja-JP': 'アップロードするメディアをデフォルトで「閲覧注意」として設定するか'
 			}
 		},
+	},
+
+	errors: {
+		noSuchAvatar: {
+			message: 'No such avatar file.',
+			code: 'NO_SUCH_AVATAR',
+			id: '539f3a45-f215-4f81-a9a8-31293640207f'
+		},
+
+		noSuchBanner: {
+			message: 'No such banner file.',
+			code: 'NO_SUCH_BANNER',
+			id: '0d8f5629-f210-41c2-9433-735831a58595'
+		},
+
+		avatarNotAnImage: {
+			message: 'The file specified as an avatar is not an image.',
+			code: 'AVATAR_NOT_AN_IMAGE',
+			id: 'f419f9f8-2f4d-46b1-9fb4-49d3a2fd7191'
+		},
+
+		bannerNotAnImage: {
+			message: 'The file specified as a banner is not an image.',
+			code: 'BANNER_NOT_AN_IMAGE',
+			id: '75aedb19-2afd-4e6d-87fc-67941256fa60'
+		},
 	}
 };
 
-export default define(meta, (ps, user, app) => new Promise(async (res, rej) => {
+export default define(meta, async (ps, user, app) => {
 	const isSecure = user != null && app == null;
 
 	const updates = {} as any;
@@ -159,8 +189,8 @@ export default define(meta, (ps, user, app) => new Promise(async (res, rej) => {
 			_id: ps.avatarId
 		});
 
-		if (avatar == null) return rej('avatar not found');
-		if (!avatar.contentType.startsWith('image/')) return rej('avatar not an image');
+		if (avatar == null) throw new ApiError(meta.errors.noSuchAvatar);
+		if (!avatar.contentType.startsWith('image/')) throw new ApiError(meta.errors.avatarNotAnImage);
 
 		updates.avatarUrl = getDriveFileUrl(avatar, true);
 
@@ -174,8 +204,8 @@ export default define(meta, (ps, user, app) => new Promise(async (res, rej) => {
 			_id: ps.bannerId
 		});
 
-		if (banner == null) return rej('banner not found');
-		if (!banner.contentType.startsWith('image/')) return rej('banner not an image');
+		if (banner == null) throw new ApiError(meta.errors.noSuchBanner);
+		if (!banner.contentType.startsWith('image/')) throw new ApiError(meta.errors.bannerNotAnImage);
 
 		updates.bannerUrl = getDriveFileUrl(banner, false);
 
@@ -193,7 +223,7 @@ export default define(meta, (ps, user, app) => new Promise(async (res, rej) => {
 				_id: ps.wallpaperId
 			});
 
-			if (wallpaper == null) return rej('wallpaper not found');
+			if (wallpaper == null) throw new Error('wallpaper not found');
 
 			updates.wallpaperUrl = getDriveFileUrl(wallpaper);
 
@@ -216,11 +246,15 @@ export default define(meta, (ps, user, app) => new Promise(async (res, rej) => {
 		if (updates.description != null) {
 			const tokens = parse(updates.description);
 			emojis = emojis.concat(extractEmojis(tokens));
-			tags = extractHashtags(tokens);
+			tags = extractHashtags(tokens).map(tag => tag.toLowerCase());
 		}
 
 		updates.emojis = emojis;
 		updates.tags = tags;
+
+		// ハッシュタグ更新
+		for (const tag of tags) updateHashtag(user, tag, true, true);
+		for (const tag of (user.tags || []).filter(x => !tags.includes(x))) updateHashtag(user, tag, true, false);
 	}
 	//#endregion
 
@@ -228,14 +262,10 @@ export default define(meta, (ps, user, app) => new Promise(async (res, rej) => {
 		$set: updates
 	});
 
-	// Serialize
 	const iObj = await pack(user._id, user, {
 		detail: true,
 		includeSecrets: isSecure
 	});
-
-	// Send response
-	res(iObj);
 
 	// Publish meUpdated event
 	publishMainStream(user._id, 'meUpdated', iObj);
@@ -247,4 +277,6 @@ export default define(meta, (ps, user, app) => new Promise(async (res, rej) => {
 
 	// フォロワーにUpdateを配信
 	publishToFollowers(user._id);
-}));
+
+	return iObj;
+});

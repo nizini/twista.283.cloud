@@ -30,6 +30,10 @@ export default Vue.extend({
 			type: Boolean,
 			default: false
 		},
+		expanded: {
+			type: Boolean,
+			default: true
+		},
 	},
 	inject: {
 		inDeck: {
@@ -38,8 +42,13 @@ export default Vue.extend({
 	},
 	data() {
 		return {
-			showBody: true
+			showBody: this.expanded
 		};
+	},
+	methods: {
+		toggleContent(show: boolean) {
+			this.showBody = show;
+		}
 	}
 });
 </script>

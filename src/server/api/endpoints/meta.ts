@@ -6,8 +6,6 @@ import define from '../define';
 import fetchMeta from '../../../misc/fetch-meta';
 import * as pkg from '../../../../package.json';
 
-import * as client from '../../../../built/client/meta.json';
-
 export const meta = {
 	stability: 'stable',
 
@@ -15,6 +13,8 @@ export const meta = {
 		'ja-JP': 'インスタンス情報を取得します。',
 		'en-US': 'Get the information of this instance.'
 	},
+
+	tags: ['meta'],
 
 	requireCredential: false,
 
@@ -26,7 +26,7 @@ export const meta = {
 	},
 };
 
-export default define(meta, (ps, me) => new Promise(async (res, rej) => {
+export default define(meta, async (ps, me) => {
 	const instance = await fetchMeta();
 
 	const emojis = await Emoji.find({ host: null }, {
@@ -39,7 +39,6 @@ export default define(meta, (ps, me) => new Promise(async (res, rej) => {
 		maintainer: instance.maintainer,
 
 		version: pkg.version,
-		clientVersion: client.version,
 
 		name: instance.name,
 		uri: config.url,
@@ -121,5 +120,5 @@ export default define(meta, (ps, me) => new Promise(async (res, rej) => {
 		response.swPrivateKey = instance.swPrivateKey;
 	}
 
-	res(response);
-}));
+	return response;
+});

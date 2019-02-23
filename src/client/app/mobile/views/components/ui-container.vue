@@ -30,11 +30,20 @@ export default Vue.extend({
 			type: Boolean,
 			default: false
 		},
+		expanded: {
+			type: Boolean,
+			default: true
+		},
 	},
 	data() {
 		return {
-			showBody: true
+			showBody: this.expanded
 		};
+	},
+	methods: {
+		toggleContent(show: boolean) {
+			this.showBody = show;
+		}
 	}
 });
 </script>
@@ -82,5 +91,8 @@ export default Vue.extend({
 			height 100%
 			font-size 15px
 			color var(--faceTextButton)
+
+	> div
+		color var(--text)
 
 </style>

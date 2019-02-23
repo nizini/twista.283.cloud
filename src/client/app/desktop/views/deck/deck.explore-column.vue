@@ -1,11 +1,11 @@
 <template>
 <x-column>
-	<span slot="header">
+	<template #header>
 		<fa :icon="faHashtag"/>{{ $t('@.explore') }}
-	</span>
+	</template>
 
 	<div>
-		<x-explore/>
+		<x-explore v-bind="$attrs"/>
 	</div>
 </x-column>
 </template>

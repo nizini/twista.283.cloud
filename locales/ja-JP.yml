@@ -66,6 +66,10 @@ common:
   following: "フォロー中"
   followers: "フォロワー"
 
+  empty-timeline-info:
+    follow-users-to-make-your-timeline: "ユーザーをフォローすると投稿がタイムラインに表示されます。"
+    explore: "ユーザーを探索する"
+
   weekday-short:
     sunday: "日"
     monday: "月"
@@ -150,6 +154,7 @@ common:
   is-remote-post: "この投稿情報はコピーです。"
   view-on-remote: "正確な情報を見る"
   renoted-by: "{user}がRenote"
+  no-notes: "投稿がありません"
 
   error:
     title: "問題が発生しました"
@@ -224,6 +229,14 @@ common/views/pages/explore.vue:
   verified-users: "公式アカウント"
   popular-users: "人気のユーザー"
   recently-updated-users: "最近投稿したユーザー"
+  recently-registered-users: "新規ユーザー"
+  popular-tags: "人気のタグ"
+  federated: "連合"
+  explore: "{host}を探索"
+  users-info: "現在{users}ユーザーが登録されています"
+
+common/views/components/user-list.vue:
+  no-users: "ユーザーがいません"
 
 common/views/components/games/reversi/reversi.vue:
   matching:
@@ -576,6 +589,10 @@ common/views/components/profile-editor.vue:
     mute-list: "ミュート"
     blocking-list: "ブロック"
   export-requested: "エクスポートをリクエストしました。これには時間がかかる場合があります。エクスポートが終わると、ドライブにファイルが追加されます。"
+  enter-password: "パスワードを入力してください"
+  danger-zone: "危険な設定"
+  delete-account: "アカウントを削除"
+  account-deleted: "アカウントが削除されました。データが消えるまで時間がかかる場合があります。"
 
 common/views/components/user-list-editor.vue:
   users: "ユーザー"
@@ -773,13 +790,6 @@ desktop/views/components/following-window.vue:
 desktop/views/components/following.vue:
   empty: "フォロー中のユーザーはいないようです。"
 
-desktop/views/components/friends-maker.vue:
-  title: "気になるユーザーをフォロー:"
-  empty: "おすすめのユーザーは見つかりませんでした。"
-  fetching: "読み込んでいます"
-  refresh: "もっと見る"
-  close: "閉じる"
-
 desktop/views/components/game-window.vue:
   game: "リバーシ"
 
@@ -873,9 +883,6 @@ desktop/views/components/renote-form.vue:
 
 desktop/views/components/renote-form-window.vue:
   title: "この投稿をRenoteしますか？"
-
-desktop/views/components/timeline.core.vue:
-  empty: "投稿がありません"
 
 desktop/views/pages/user-following-or-followers.vue:
   following: "{user}のフォロー"
@@ -1230,6 +1237,7 @@ admin/views/instance.vue:
   smtp-secure-info: "STARTTLS使用時はオフにします。"
   smtp-host: "SMTPホスト"
   smtp-port: "SMTPポート"
+  smtp-auth: "SMTP認証を行う"
   smtp-user: "SMTPユーザー"
   smtp-pass: "SMTPパスワード"
   serviceworker-config: "ServiceWorker"
@@ -1501,6 +1509,7 @@ desktop/views/pages/user/user.header.vue:
   following: "フォロー"
   followers: "フォロワー"
   is-bot: "このアカウントはBotです"
+  no-description: "自己紹介はありません"
   years-old: "{age}歳"
   year: "年"
   month: "月"
@@ -1512,7 +1521,6 @@ desktop/views/pages/user/user.timeline.vue:
   with-replies: "投稿と返信"
   with-media: "メディア"
   my-posts: "私の投稿"
-  empty: "このユーザーはまだ何も投稿していないようです。"
 
 desktop/views/widgets/messaging.vue:
   title: "メッセージ"
@@ -1589,13 +1597,6 @@ common/views/components/follow-button.vue:
   follow-processing: "フォロー処理中"
   follow-request: "フォロー申請"
 
-mobile/views/components/friends-maker.vue:
-  title: "気になるユーザーをフォロー"
-  empty: "おすすめのユーザーは見つかりませんでした。"
-  fetching: "読み込んでいます"
-  refresh: "もっと見る"
-  close: "閉じる"
-
 mobile/views/components/note.vue:
   private: "この投稿は非公開です"
   deleted: "この投稿は削除されました"
@@ -1639,9 +1640,6 @@ mobile/views/components/sub-note-content.vue:
   media-count: "{}つのメディア"
   poll: "アンケート"
 
-mobile/views/components/timeline.vue:
-  empty: "投稿がありません"
-
 mobile/views/components/ui.header.vue:
   welcome-back: "おかえりなさい、"
   adjective: "さん"
@@ -1659,10 +1657,6 @@ mobile/views/components/ui.nav.vue:
   settings: "設定"
   admin: "管理"
   about: "Misskeyについて"
-
-mobile/views/components/user-timeline.vue:
-  no-notes: "このユーザーは投稿していないようです。"
-  no-notes-with-media: "メディア付き投稿はありません。"
 
 mobile/views/pages/favorites.vue:
   title: "お気に入り"
@@ -1687,9 +1681,6 @@ mobile/views/pages/home.vue:
   global: "グローバル"
   mentions: "あなた宛て"
   messages: "メッセージ"
-
-mobile/views/pages/home.timeline.vue:
-  empty: "投稿がありません"
 
 mobile/views/pages/tag.vue:
   no-posts-found: "ハッシュタグ「{q}」が付けられた投稿は見つかりませんでした。"
@@ -1797,15 +1788,6 @@ mobile/views/pages/user/home.vue:
   followers-you-know: "知り合いのフォロワー"
   last-used-at: "最終ログイン"
 
-mobile/views/pages/user/home.followers-you-know.vue:
-  no-users: "知り合いのユーザーはいません"
-
-mobile/views/pages/user/home.friends.vue:
-  no-users: "よく話すユーザーはいません"
-
-mobile/views/pages/user/home.notes.vue:
-  no-notes: "投稿はありません"
-
 mobile/views/pages/user/home.photos.vue:
   no-photos: "写真はありません"
 
@@ -1835,7 +1817,6 @@ deck:
 
 deck/deck.tl-column.vue:
   is-media-only: "メディア投稿のみ"
-  is-media-view: "メディアビュー"
   edit: "オプション"
 
 deck/deck.user-column.vue:

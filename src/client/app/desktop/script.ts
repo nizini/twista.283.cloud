@@ -14,7 +14,6 @@ import composeNotification from '../common/scripts/compose-notification';
 
 import MkHome from './views/home/home.vue';
 import MkDeck from './views/deck/deck.vue';
-import MkUserFollowingOrFollowers from './views/pages/user-following-or-followers.vue';
 import MkSelectDrive from './views/pages/selectdrive.vue';
 import MkDrive from './views/pages/drive.vue';
 import MkMessagingRoom from './views/pages/messaging-room.vue';
@@ -124,13 +123,19 @@ init(async (launch, os) => {
 	require('./views/components');
 	require('./views/widgets');
 
+	os.store.commit('device/set', {
+		key: 'inDeckMode',
+		value: os.store.getters.isSignedIn && os.store.state.device.deckMode
+			&& (document.location.pathname === '/' || window.performance.navigation.type === 1)
+	});
+
 	// Init router
 	const router = new VueRouter({
 		mode: 'history',
 		routes: [
-			os.store.getters.isSignedIn && os.store.state.device.deckMode && document.location.pathname === '/'
+			os.store.state.device.inDeckMode
 				? { path: '/', name: 'index', component: MkDeck, children: [
-					{ path: '/@:user', name: 'user', component: () => import('./views/deck/deck.user-column.vue').then(m => m.default), children: [
+					{ path: '/@:user', component: () => import('./views/deck/deck.user-column.vue').then(m => m.default), children: [
 						{ path: '', name: 'user', component: () => import('./views/deck/deck.user-column.home.vue').then(m => m.default) },
 						{ path: 'following', component: () => import('../common/views/pages/following.vue').then(m => m.default) },
 						{ path: 'followers', component: () => import('../common/views/pages/followers.vue').then(m => m.default) },
@@ -138,8 +143,9 @@ init(async (launch, os) => {
 					{ path: '/notes/:note', name: 'note', component: () => import('./views/deck/deck.note-column.vue').then(m => m.default) },
 					{ path: '/search', component: () => import('./views/deck/deck.search-column.vue').then(m => m.default) },
 					{ path: '/tags/:tag', name: 'tag', component: () => import('./views/deck/deck.hashtag-column.vue').then(m => m.default) },
-					{ path: '/featured', component: () => import('./views/deck/deck.featured-column.vue').then(m => m.default) },
-					{ path: '/explore', component: () => import('./views/deck/deck.explore-column.vue').then(m => m.default) },
+					{ path: '/featured', name: 'featured', component: () => import('./views/deck/deck.featured-column.vue').then(m => m.default) },
+					{ path: '/explore', name: 'explore', component: () => import('./views/deck/deck.explore-column.vue').then(m => m.default) },
+					{ path: '/explore/tags/:tag', name: 'explore-tag', props: true, component: () => import('./views/deck/deck.explore-column.vue').then(m => m.default) },
 					{ path: '/i/favorites', component: () => import('./views/deck/deck.favorites-column.vue').then(m => m.default) }
 				]}
 				: { path: '/', component: MkHome, children: [
@@ -154,6 +160,7 @@ init(async (launch, os) => {
 					{ path: '/tags/:tag', name: 'tag', component: () => import('./views/home/tag.vue').then(m => m.default) },
 					{ path: '/featured', name: 'featured', component: () => import('./views/home/featured.vue').then(m => m.default) },
 					{ path: '/explore', name: 'explore', component: () => import('../common/views/pages/explore.vue').then(m => m.default) },
+					{ path: '/explore/tags/:tag', name: 'explore-tag', props: true, component: () => import('../common/views/pages/explore.vue').then(m => m.default) },
 					{ path: '/i/favorites', component: () => import('./views/home/favorites.vue').then(m => m.default) },
 				]},
 			{ path: '/i/messaging/:user', component: MkMessagingRoom },
