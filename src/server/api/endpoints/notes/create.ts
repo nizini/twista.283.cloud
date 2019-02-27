@@ -138,6 +138,7 @@ export const meta = {
 		mediaIds: {
 			validator: $.optional.arr($.type(ID)).unique().range(1, 4),
 			transform: transformMany,
+			deprecated: true,
 			desc: {
 				'ja-JP': '添付するファイル (このパラメータは廃止予定です。代わりに fileIds を使ってください。)'
 			}
@@ -175,12 +176,10 @@ export const meta = {
 
 	res: {
 		type: 'object',
-		props: {
+		properties: {
 			createdNote: {
 				type: 'Note',
-				desc: {
-					'ja-JP': '作成した投稿'
-				}
+				description: '作成した投稿'
 			}
 		}
 	},

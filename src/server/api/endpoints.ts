@@ -1,11 +1,13 @@
 import { Context } from 'cafy';
 import * as path from 'path';
 import * as glob from 'glob';
+import { Schema } from '../../misc/schema';
 
 export type Param = {
 	validator: Context<any>;
 	transform?: any;
 	default?: any;
+	deprecated?: boolean;
 	desc?: { [key: string]: string };
 	ref?: string;
 };
@@ -29,7 +31,7 @@ export interface IEndpointMeta {
 		};
 	};
 
-	res?: any;
+	res?: Schema;
 
 	/**
 	 * このエンドポイントにリクエストするのにユーザー情報が必須か否か

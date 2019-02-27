@@ -21,7 +21,7 @@ import getNoteSummary from '../../misc/get-note-summary';
 import fetchMeta from '../../misc/fetch-meta';
 import Emoji from '../../models/emoji';
 import * as pkg from '../../../package.json';
-import { genOpenapiSpec } from '../api/gen-openapi-spec';
+import { genOpenapiSpec } from '../api/openapi/gen-spec';
 
 const client = `${__dirname}/../../client/`;
 
@@ -55,7 +55,6 @@ router.get('/assets/*', async ctx => {
 	await send(ctx as any, ctx.path, {
 		root: client,
 		maxage: ms('7 days'),
-		immutable: true
 	});
 });
 

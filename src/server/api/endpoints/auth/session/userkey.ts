@@ -13,11 +13,34 @@ export const meta = {
 
 	params: {
 		appSecret: {
-			validator: $.str
+			validator: $.str,
+			desc: {
+				'ja-JP': 'アプリケーションのシークレットキー',
+				'en-US': 'The secret key of your application.'
+			}
 		},
 
 		token: {
-			validator: $.str
+			validator: $.str,
+			desc: {
+				'ja-JP': 'セッションのトークン',
+				'en-US': 'The token of a session.'
+			}
+		}
+	},
+
+	res: {
+		type: 'object',
+		properties: {
+			accessToken: {
+				type: 'string',
+				description: 'ユーザーのアクセストークン',
+			},
+
+			user: {
+				type: 'User',
+				description: '認証したユーザー'
+			},
 		}
 	},
 

@@ -3,10 +3,12 @@
 	<ui-container v-if="user.pinnedNotes && user.pinnedNotes.length > 0" :body-togglable="true">
 		<template #header><fa icon="thumbtack"/> {{ $t('pinned-notes') }}</template>
 		<div>
-			<x-note v-for="n in user.pinnedNotes" :key="n.id" :note="n" :mini="true"/>
+			<mk-note v-for="n in user.pinnedNotes" :key="n.id" :note="n"/>
 		</div>
 	</ui-container>
-	<ui-container v-if="images.length > 0" :body-togglable="true">
+	<ui-container v-if="images.length > 0" :body-togglable="true"
+		:expanded="$store.state.device.expandUsersPhotos"
+		@toggle="expanded => $store.commit('device/set', { key: 'expandUsersPhotos', value: expanded })">
 		<template #header><fa :icon="['far', 'images']"/> {{ $t('images') }}</template>
 		<div class="sainvnaq">
 			<router-link v-for="image in images"
@@ -17,7 +19,9 @@
 			></router-link>
 		</div>
 	</ui-container>
-	<ui-container :body-togglable="true">
+	<ui-container :body-togglable="true"
+		:expanded="$store.state.device.expandUsersActivity"
+		@toggle="expanded => $store.commit('device/set', { key: 'expandUsersActivity', value: expanded })">
 		<template #header><fa :icon="['far', 'chart-bar']"/> {{ $t('activity') }}</template>
 		<div>
 			<div ref="chart"></div>
@@ -36,7 +40,6 @@
 import Vue from 'vue';
 import i18n from '../../../i18n';
 import XNotes from './deck.notes.vue';
-import XNote from '../components/note.vue';
 import { concat } from '../../../../../prelude/array';
 import ApexCharts from 'apexcharts';
 
@@ -47,7 +50,6 @@ export default Vue.extend({
 
 	components: {
 		XNotes,
-		XNote
 	},
 
 	props: {

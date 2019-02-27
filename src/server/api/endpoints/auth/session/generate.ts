@@ -13,7 +13,25 @@ export const meta = {
 
 	params: {
 		appSecret: {
-			validator: $.str
+			validator: $.str,
+			desc: {
+				'ja-JP': 'アプリケーションのシークレットキー',
+				'en-US': 'The secret key of your application.'
+			}
+		}
+	},
+
+	res: {
+		type: 'object',
+		properties: {
+			token: {
+				type: 'string',
+				description: 'セッションのトークン'
+			},
+			url: {
+				type: 'string',
+				description: 'セッションのURL'
+			},
 		}
 	},
 
@@ -48,6 +66,6 @@ export default define(meta, async (ps) => {
 
 	return {
 		token: doc.token,
-		url: `${config.auth_url}/${doc.token}`
+		url: `${config.authUrl}/${doc.token}`
 	};
 });

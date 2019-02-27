@@ -14,16 +14,18 @@
 				<template #title><fa icon="poll-h"/> {{ $t('design') }}</template>
 
 				<section>
-					<ui-switch v-model="darkmode">{{ $t('dark-mode') }}</ui-switch>
-					<ui-switch v-model="circleIcons">{{ $t('circle-icons') }}</ui-switch>
+					<ui-switch v-model="darkmode">{{ $t('@.dark-mode') }}</ui-switch>
+					<ui-switch v-model="useShadow">{{ $t('@.use-shadow') }}</ui-switch>
+					<ui-switch v-model="roundedCorners">{{ $t('@.rounded-corners') }}</ui-switch>
+					<ui-switch v-model="circleIcons">{{ $t('@.circle-icons') }}</ui-switch>
 					<section>
 						<header>{{ $t('@.line-width') }}</header>
 						<ui-radio v-model="lineWidth" :value="0.5">{{ $t('@.line-width-thin') }}</ui-radio>
 						<ui-radio v-model="lineWidth" :value="1">{{ $t('@.line-width-normal') }}</ui-radio>
 						<ui-radio v-model="lineWidth" :value="2">{{ $t('@.line-width-thick') }}</ui-radio>
 					</section>
-					<ui-switch v-model="reduceMotion">{{ $t('@.reduce-motion') }} ({{ $t('@.this-setting-is-this-device-only') }})</ui-switch>
-					<ui-switch v-model="contrastedAcct">{{ $t('contrasted-acct') }}</ui-switch>
+					<ui-switch v-model="reduceMotion">{{ $t('@.reduce-motion') }}</ui-switch>
+					<ui-switch v-model="contrastedAcct">{{ $t('@.contrasted-acct') }}</ui-switch>
 					<ui-switch v-model="showFullAcct">{{ $t('@.show-full-acct') }}</ui-switch>
 					<ui-switch v-model="showVia">{{ $t('@.show-via') }}</ui-switch>
 					<ui-switch v-model="useOsDefaultEmojis">{{ $t('@.use-os-default-emojis') }}</ui-switch>
@@ -59,6 +61,21 @@
 					<header>{{ $t('notification-position') }}</header>
 					<ui-radio v-model="mobileNotificationPosition" value="bottom">{{ $t('notification-position-bottom') }}</ui-radio>
 					<ui-radio v-model="mobileNotificationPosition" value="top">{{ $t('notification-position-top') }}</ui-radio>
+				</section>
+
+				<section>
+					<header>{{ $t('@.deck-column-align') }}</header>
+					<ui-radio v-model="deckColumnAlign" value="center">{{ $t('@.deck-column-align-center') }}</ui-radio>
+					<ui-radio v-model="deckColumnAlign" value="left">{{ $t('@.deck-column-align-left') }}</ui-radio>
+					<ui-radio v-model="deckColumnAlign" value="flexible">{{ $t('@.deck-column-align-flexible') }}</ui-radio>
+				</section>
+				<section>
+					<header>{{ $t('@.deck-column-width') }}</header>
+					<ui-radio v-model="deckColumnWidth" value="narrow">{{ $t('@.deck-column-width-narrow') }}</ui-radio>
+					<ui-radio v-model="deckColumnWidth" value="narrower">{{ $t('@.deck-column-width-narrower') }}</ui-radio>
+					<ui-radio v-model="deckColumnWidth" value="normal">{{ $t('@.deck-column-width-normal') }}</ui-radio>
+					<ui-radio v-model="deckColumnWidth" value="wider">{{ $t('@.deck-column-width-wider') }}</ui-radio>
+					<ui-radio v-model="deckColumnWidth" value="wide">{{ $t('@.deck-column-width-wide') }}</ui-radio>
 				</section>
 			</ui-card>
 
@@ -140,7 +157,7 @@
 			</ui-card>
 		</div>
 
-		<div class="signout" @click="signout">{{ $t('signout') }}</div>
+		<div class="signout" @click="signout">{{ $t('@.signout') }}</div>
 
 		<footer>
 			<small>ver {{ version }} ({{ codename }})</small>
@@ -199,6 +216,16 @@ export default Vue.extend({
 			set(value) { this.$store.commit('device/set', { key: 'darkmode', value }); }
 		},
 
+		useShadow: {
+			get() { return this.$store.state.device.useShadow; },
+			set(value) { this.$store.commit('device/set', { key: 'useShadow', value }); }
+		},
+
+		roundedCorners: {
+			get() { return this.$store.state.device.roundedCorners; },
+			set(value) { this.$store.commit('device/set', { key: 'roundedCorners', value }); }
+		},
+
 		useOsDefaultEmojis: {
 			get() { return this.$store.state.device.useOsDefaultEmojis; },
 			set(value) { this.$store.commit('device/set', { key: 'useOsDefaultEmojis', value }); }
@@ -242,6 +269,16 @@ export default Vue.extend({
 		enableSounds: {
 			get() { return this.$store.state.device.enableSounds; },
 			set(value) { this.$store.commit('device/set', { key: 'enableSounds', value }); }
+		},
+
+		deckColumnAlign: {
+			get() { return this.$store.state.device.deckColumnAlign; },
+			set(value) { this.$store.commit('device/set', { key: 'deckColumnAlign', value }); }
+		},
+
+		deckColumnWidth: {
+			get() { return this.$store.state.device.deckColumnWidth; },
+			set(value) { this.$store.commit('device/set', { key: 'deckColumnWidth', value }); }
 		},
 
 		fetchOnScroll: {
