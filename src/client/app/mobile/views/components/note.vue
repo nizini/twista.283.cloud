@@ -6,6 +6,7 @@
 	:class="{ renote: isRenote, smart: $store.state.device.postStyle == 'smart', mini: narrow }"
 	v-hotkey="keymap"
 >
+	<x-sub v-for="note in conversation" :key="note.id" :note="note"/>
 	<div class="reply-to" v-if="appearNote.reply && (!$store.getters.isSignedIn || $store.state.settings.showReplyTarget)">
 		<x-sub :note="appearNote.reply"/>
 	</div>
@@ -36,32 +37,33 @@
 				</div>
 				<span class="app" v-if="appearNote.app && $store.state.settings.showVia">via <b>{{ appearNote.app.name }}</b></span>
 			</div>
-			<footer v-if="appearNote.deletedAt == null">
+			<footer v-if="appearNote.deletedAt == null" class="footer">
 				<mk-reactions-viewer :note="appearNote" ref="reactionsViewer"/>
-				<button @click="reply()">
+				<button @click="reply()" class="button">
 					<template v-if="appearNote.reply"><fa icon="reply-all"/></template>
 					<template v-else><fa icon="reply"/></template>
 					<p class="count" v-if="appearNote.repliesCount > 0">{{ appearNote.repliesCount }}</p>
 				</button>
-				<button v-if="['public', 'home'].includes(appearNote.visibility)" @click="renote()" title="Renote">
+				<button v-if="['public', 'home'].includes(appearNote.visibility)" @click="renote()" title="Renote" class="button">
 					<fa icon="retweet"/><p class="count" v-if="appearNote.renoteCount > 0">{{ appearNote.renoteCount }}</p>
 				</button>
-				<button v-else>
+				<button v-else class="button">
 					<fa icon="ban"/>
 				</button>
-				<button v-if="!isMyNote && appearNote.myReaction == null" class="reactionButton" @click="react()" ref="reactButton">
+				<button v-if="!isMyNote && appearNote.myReaction == null" class="button" @click="react()" ref="reactButton">
 					<fa icon="plus"/>
 				</button>
-				<button v-if="!isMyNote && appearNote.myReaction != null" class="reactionButton reacted" @click="undoReact(appearNote)" ref="reactButton">
+				<button v-if="!isMyNote && appearNote.myReaction != null" class="button reacted" @click="undoReact(appearNote)" ref="reactButton">
 					<fa icon="minus"/>
 				</button>
-				<button class="menu" @click="menu()" ref="menuButton">
+				<button class="button" @click="menu()" ref="menuButton">
 					<fa icon="ellipsis-h"/>
 				</button>
 			</footer>
 			<div class="deleted" v-if="appearNote.deletedAt != null">{{ $t('deleted') }}</div>
 		</div>
 	</article>
+	<x-sub v-for="note in replies" :key="note.id" :note="note"/>
 </div>
 </template>
 
@@ -91,6 +93,11 @@ export default Vue.extend({
 			type: Object,
 			required: true
 		},
+		detail: {
+			type: Boolean,
+			required: false,
+			default: false
+		},
 	},
 
 	inject: {
@@ -98,6 +105,30 @@ export default Vue.extend({
 			default: false
 		}
 	},
+
+	data() {
+		return {
+			conversation: [],
+			replies: []
+		};
+	},
+
+	created() {
+		if (this.detail) {
+			this.$root.api('notes/replies', {
+				noteId: this.appearNote.id,
+				limit: 8
+			}).then(replies => {
+				this.replies = replies;
+			});
+
+			this.$root.api('notes/conversation', {
+				noteId: this.appearNote.replyId
+			}).then(conversation => {
+				this.conversation = conversation.reverse();
+			});
+		}
+	}
 });
 </script>
 
@@ -192,6 +223,7 @@ export default Vue.extend({
 						padding 0
 						overflow-wrap break-word
 						color var(--noteText)
+						font-size calc(1em + var(--fontSize))
 
 						> .reply
 							margin-right 8px
@@ -237,8 +269,8 @@ export default Vue.extend({
 					font-size 12px
 					color #ccc
 
-			> footer
-				> button
+			> .footer
+				> .button
 					margin 0
 					padding 8px
 					background transparent
