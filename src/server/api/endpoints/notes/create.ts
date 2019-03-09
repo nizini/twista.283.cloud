@@ -8,6 +8,7 @@ import DriveFile, { IDriveFile } from '../../../../models/drive-file';
 import create from '../../../../services/note/create';
 import define from '../../define';
 import fetchMeta from '../../../../misc/fetch-meta';
+import { ApiError } from '../../error';
 
 let maxNoteTextLength = 1000;
 
@@ -23,6 +24,8 @@ export const meta = {
 	desc: {
 		'ja-JP': '投稿します。'
 	},
+
+	tags: ['notes'],
 
 	requireCredential: true,
 
@@ -135,6 +138,7 @@ export const meta = {
 		mediaIds: {
 			validator: $.optional.arr($.type(ID)).unique().range(1, 4),
 			transform: transformMany,
+			deprecated: true,
 			desc: {
 				'ja-JP': '添付するファイル (このパラメータは廃止予定です。代わりに fileIds を使ってください。)'
 			}
@@ -161,7 +165,10 @@ export const meta = {
 				choices: $.arr($.str)
 					.unique()
 					.range(2, 10)
-					.each(c => c.length > 0 && c.length < 50)
+					.each(c => c.length > 0 && c.length < 50),
+				multiple: $.optional.bool,
+				expiresAt: $.optional.nullable.num.int(),
+				expiredAfter: $.optional.nullable.num.int().min(1)
 			}).strict(),
 			desc: {
 				'ja-JP': 'アンケート'
@@ -172,18 +179,54 @@ export const meta = {
 
 	res: {
 		type: 'object',
-		props: {
+		properties: {
 			createdNote: {
-				type: 'entity(Note)',
-				desc: {
-					'ja-JP': '作成した投稿'
-				}
+				type: 'Note',
+				description: '作成した投稿'
 			}
+		}
+	},
+
+	errors: {
+		noSuchRenoteTarget: {
+			message: 'No such renote target.',
+			code: 'NO_SUCH_RENOTE_TARGET',
+			id: 'b5c90186-4ab0-49c8-9bba-a1f76c282ba4'
+		},
+
+		cannotReRenote: {
+			message: 'You can not Renote a pure Renote.',
+			code: 'CANNOT_RENOTE_TO_A_PURE_RENOTE',
+			id: 'fd4cc33e-2a37-48dd-99cc-9b806eb2031a'
+		},
+
+		noSuchReplyTarget: {
+			message: 'No such reply target.',
+			code: 'NO_SUCH_REPLY_TARGET',
+			id: '749ee0f6-d3da-459a-bf02-282e2da4292c'
+		},
+
+		cannotReplyToPureRenote: {
+			message: 'You can not reply to a pure Renote.',
+			code: 'CANNOT_REPLY_TO_A_PURE_RENOTE',
+			id: '3ac74a84-8fd5-4bb0-870f-01804f82ce15'
+		},
+
+		contentRequired: {
+			message: 'Content required. You need to set text, fileIds, renoteId or poll.',
+			code: 'CONTENT_REQUIRED',
+			id: '6f57e42b-c348-439b-bc45-993995cc515a'
+		},
+
+		cannotCreateAlreadyExpiredPoll: {
+			message: 'Poll is already expired.',
+			code: 'CANNOT_CREATE_ALREADY_EXPIRED_POLL',
+			id: '04da457d-b083-4055-9082-955525eda5a5'
 		}
 	}
 };
 
-export default define(meta, (ps, user, app) => new Promise(async (res, rej) => {
+export default define(meta, async (ps, user, app) => {
 	let visibleUsers: IUser[] = [];
 	if (ps.visibleUserIds) {
 		visibleUsers = await Promise.all(ps.visibleUserIds.map(id => User.findOne({
@@ -212,9 +255,9 @@ export default define(meta, (ps, user, app) => new Promise(async (res, rej) => {
 		});
 
 		if (renote == null) {
-			return rej('renoteee is not found');
+			throw new ApiError(meta.errors.noSuchRenoteTarget);
 		} else if (renote.renoteId && !renote.text && !renote.fileIds) {
-			return rej('cannot renote to renote');
+			throw new ApiError(meta.errors.cannotReRenote);
 		}
 	}
 
@@ -226,12 +269,12 @@ export default define(meta, (ps, user, app) => new Promise(async (res, rej) => {
 		});
 
 		if (reply === null) {
-			return rej('in reply to note is not found');
+			throw new ApiError(meta.errors.noSuchReplyTarget);
 		}
 
 		// 返信対象が引用でないRenoteだったらエラー
 		if (reply.renoteId && !reply.text && !reply.fileIds) {
-			return rej('cannot reply to renote');
+			throw new ApiError(meta.errors.cannotReplyToPureRenote);
 		}
 	}
 
@@ -241,11 +284,18 @@ export default define(meta, (ps, user, app) => new Promise(async (res, rej) => {
 			text: choice.trim(),
 			votes: 0
 		}));
+
+		if (typeof ps.poll.expiresAt === 'number') {
+			if (ps.poll.expiresAt < Date.now())
+				throw new ApiError(meta.errors.cannotCreateAlreadyExpiredPoll);
+		} else if (typeof ps.poll.expiredAfter === 'number') {
+			ps.poll.expiresAt = Date.now() + ps.poll.expiredAfter;
+		}
 	}
 
 	// テキストが無いかつ添付ファイルが無いかつRenoteも無いかつ投票も無かったらエラー
 	if (!(ps.text || files.length || renote || ps.poll)) {
-		return rej('text, fileIds, renoteId or poll is required');
+		throw new ApiError(meta.errors.contentRequired);
 	}
 
 	// 後方互換性のため
@@ -254,10 +304,14 @@ export default define(meta, (ps, user, app) => new Promise(async (res, rej) => {
 	}
 
 	// 投稿を作成
-	create(user, {
+	const note = await create(user, {
 		createdAt: new Date(),
 		files: files,
-		poll: ps.poll,
+		poll: ps.poll ? {
+			choices: ps.poll.choices,
+			multiple: ps.poll.multiple || false,
+			expiresAt: ps.poll.expiresAt ? new Date(ps.poll.expiresAt) : null
+		} : undefined,
 		text: ps.text,
 		reply,
 		renote,
@@ -271,14 +325,9 @@ export default define(meta, (ps, user, app) => new Promise(async (res, rej) => {
 		apHashtags: ps.noExtractHashtags ? [] : undefined,
 		apEmojis: ps.noExtractEmojis ? [] : undefined,
 		geo: ps.geo
-	})
-	.then(note => pack(note, user))
-	.then(noteObj => {
-		res({
-			createdNote: noteObj
-		});
-	})
-	.catch(e => {
-		rej(e);
 	});
-}));
+
+	return {
+		createdNote: await pack(note, user)
+	};
+});

@@ -4,6 +4,7 @@ import AccessToken from './access-token';
 import db from '../db/mongodb';
 import isObjectId from '../misc/is-objectid';
 import config from '../config';
+import { dbLogger } from '../db/logger';
 
 const App = db.get<IApp>('apps');
 App.createIndex('secret');
@@ -66,6 +67,12 @@ export const pack = (
 		}
 	}
 
+	// (データベースの欠損などで)アプリがデータベース上に見つからなかったとき
+	if (_app == null) {
+		dbLogger.warn(`[DAMAGED DB] (missing) pkg: app :: ${app}`);
+		return null;
+	}
+
 	// Rename _id to id
 	_app.id = _app._id;
 	delete _app._id;
@@ -76,8 +83,8 @@ export const pack = (
 	}
 
 	_app.iconUrl = _app.icon != null
-		? `${config.drive_url}/${_app.icon}`
-		: `${config.drive_url}/app-default.jpg`;
+		? `${config.driveUrl}/${_app.icon}`
+		: `${config.driveUrl}/app-default.jpg`;
 
 	if (me) {
 		// 既に連携しているか

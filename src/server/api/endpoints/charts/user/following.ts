@@ -1,7 +1,8 @@
 import $ from 'cafy';
 import define from '../../../define';
-import perUserFollowingChart from '../../../../../services/chart/per-user-following';
+import perUserFollowingChart, { perUserFollowingLogSchema } from '../../../../../services/chart/per-user-following';
 import ID, { transform } from '../../../../../misc/cafy-id';
+import { convertLog } from '../../../../../services/chart';
 
 export const meta = {
 	stability: 'stable',
@@ -9,6 +10,8 @@ export const meta = {
 	desc: {
 		'ja-JP': 'ユーザーごとのフォロー/フォロワーのチャートを取得します。'
 	},
+
+	tags: ['charts', 'users', 'following'],
 
 	params: {
 		span: {
@@ -34,11 +37,11 @@ export const meta = {
 				'en-US': 'Target user ID'
 			}
 		}
-	}
+	},
+
+	res: convertLog(perUserFollowingLogSchema),
 };
 
-export default define(meta, (ps) => new Promise(async (res, rej) => {
-	const stats = await perUserFollowingChart.getChart(ps.span as any, ps.limit, ps.userId);
-
-	res(stats);
-}));
+export default define(meta, async (ps) => {
+	return  await perUserFollowingChart.getChart(ps.span as any, ps.limit, ps.userId);
+});

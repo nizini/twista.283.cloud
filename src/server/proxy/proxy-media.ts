@@ -3,11 +3,11 @@ import * as URL from 'url';
 import * as tmp from 'tmp';
 import * as Koa from 'koa';
 import * as request from 'request';
-import * as fileType from 'file-type';
-import * as isSvg from 'is-svg';
+import fileType from 'file-type';
 import { serverLogger } from '..';
 import config from '../../config';
 import { IImage, ConvertToPng } from '../../services/drive/image-processor';
+import checkSvg from '../../misc/check-svg';
 
 export async function proxyMedia(ctx: Koa.BaseContext) {
 	const url = 'url' in ctx.query ? ctx.query.url : 'https://' + ctx.params.url;
@@ -72,7 +72,7 @@ async function fetch(url: string, path: string) {
 			proxy: config.proxy,
 			timeout: 10 * 1000,
 			headers: {
-				'User-Agent': config.user_agent
+				'User-Agent': config.userAgent
 			}
 		});
 
@@ -101,8 +101,12 @@ async function detectMine(path: string) {
 				readable.destroy();
 				const type = fileType(buffer);
 				if (type) {
-					res([type.mime, type.ext]);
-				} else if (isSvg(buffer)) {
+					if (type.mime == 'application/xml' && checkSvg(path)) {
+						res(['image/svg+xml', 'svg']);
+					} else {
+						res([type.mime, type.ext]);
+					}
+				} else if (checkSvg(path)) {
 					res(['image/svg+xml', 'svg']);
 				} else {
 					// 種類が同定できなかったら application/octet-stream にする

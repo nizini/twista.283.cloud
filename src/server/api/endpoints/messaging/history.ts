@@ -9,6 +9,8 @@ export const meta = {
 		'en-US': 'Show messaging history.'
 	},
 
+	tags: ['messaging'],
+
 	requireCredential: true,
 
 	kind: 'messaging-read',
@@ -18,10 +20,17 @@ export const meta = {
 			validator: $.optional.num.range(1, 100),
 			default: 10
 		}
-	}
+	},
+
+	res: {
+		type: 'array',
+		items: {
+			type: 'MessagingMessage',
+		},
+	},
 };
 
-export default define(meta, (ps, user) => new Promise(async (res, rej) => {
+export default define(meta, async (ps, user) => {
 	const mute = await Mute.find({
 		muterId: user._id,
 		deletedAt: { $exists: false }
@@ -58,5 +67,5 @@ export default define(meta, (ps, user) => new Promise(async (res, rej) => {
 		}
 	}
 
-	res(await Promise.all(history.map(h => pack(h._id, user))));
-}));
+	return await Promise.all(history.map(h => pack(h._id, user)));
+});

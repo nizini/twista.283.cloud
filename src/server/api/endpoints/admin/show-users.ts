@@ -1,8 +1,11 @@
 import $ from 'cafy';
 import User, { pack } from '../../../../models/user';
 import define from '../../define';
+import { fallback } from '../../../../prelude/symbol';
 
 export const meta = {
+	tags: ['admin'],
+
 	requireCredential: true,
 	requireModerator: true,
 
@@ -52,40 +55,17 @@ export const meta = {
 	}
 };
 
-export default define(meta, (ps, me) => new Promise(async (res, rej) => {
-	let _sort;
-	if (ps.sort) {
-		if (ps.sort == '+follower') {
-			_sort = {
-				followersCount: -1
-			};
-		} else if (ps.sort == '-follower') {
-			_sort = {
-				followersCount: 1
-			};
-		} else if (ps.sort == '+createdAt') {
-			_sort = {
-				createdAt: -1
-			};
-		} else if (ps.sort == '+updatedAt') {
-			_sort = {
-				updatedAt: -1
-			};
-		} else if (ps.sort == '-createdAt') {
-			_sort = {
-				createdAt: 1
-			};
-		} else if (ps.sort == '-updatedAt') {
-			_sort = {
-				updatedAt: 1
-			};
-		}
-	} else {
-		_sort = {
-			_id: -1
-		};
-	}
+const sort: any = { // < https://github.com/Microsoft/TypeScript/issues/1863
+	'+follower': { followersCount: -1 },
+	'-follower': { followersCount: 1 },
+	'+createdAt': { createdAt: -1 },
+	'-createdAt': { createdAt: 1 },
+	'+updatedAt': { updatedAt: -1 },
+	'-updatedAt': { updatedAt: 1 },
+	[fallback]: { _id: -1 }
+};
 
+export default define(meta, async (ps, me) => {
 	const q = {
 		$and: []
 	} as any;
@@ -117,9 +97,9 @@ export default define(meta, (ps, me) => new Promise(async (res, rej) => {
 	const users = await User
 		.find(q, {
 			limit: ps.limit,
-			sort: _sort,
+			sort: sort[ps.sort] || sort[fallback],
 			skip: ps.offset
 		});
 
-	res(await Promise.all(users.map(user => pack(user, me, { detail: true }))));
-}));
+	return await Promise.all(users.map(user => pack(user, me, { detail: true })));
+});

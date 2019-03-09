@@ -1,7 +1,7 @@
 <template>
 <div>
 	<ui-card>
-		<div slot="title"><fa icon="broadcast-tower"/> {{ $t('announcements') }}</div>
+		<template #title><fa icon="broadcast-tower"/> {{ $t('announcements') }}</template>
 		<section v-for="(announcement, i) in announcements" class="fit-top">
 			<ui-input v-model="announcement.title" @change="save">
 				<span>{{ $t('title') }}</span>
@@ -35,7 +35,7 @@ export default Vue.extend({
 
 	created() {
 		this.$root.getMeta().then(meta => {
-			this.announcements = meta.broadcasts;
+			this.announcements = meta.announcements;
 		});
 	},
 
@@ -65,7 +65,7 @@ export default Vue.extend({
 
 		save(silent) {
 			this.$root.api('admin/update-meta', {
-				broadcasts: this.announcements
+				announcements: this.announcements
 			}).then(() => {
 				if (!silent) {
 					this.$root.dialog({

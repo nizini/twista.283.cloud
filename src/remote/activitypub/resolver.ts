@@ -13,6 +13,10 @@ export default class Resolver {
 		this.history = new Set();
 	}
 
+	public getHistory(): string[] {
+		return Array.from(this.history);
+	}
+
 	public async resolveCollection(value: any) {
 		const collection = typeof value === 'string'
 			? await this.resolve(value)
@@ -49,7 +53,7 @@ export default class Resolver {
 		}
 
 		if (this.history.has(value)) {
-			logger.error(`cannot resolve already resolved one`);
+			logger.error(`cannot resolve already resolved one: ${value}`);
 			throw new Error('cannot resolve already resolved one');
 		}
 
@@ -60,12 +64,15 @@ export default class Resolver {
 			proxy: config.proxy,
 			timeout: this.timeout,
 			headers: {
-				'User-Agent': config.user_agent,
+				'User-Agent': config.userAgent,
 				Accept: 'application/activity+json, application/ld+json'
 			},
 			json: true
 		}).catch(e => {
-			logger.error(`request error: ${e.message}`);
+			logger.error(`request error: ${value}: ${e.message}`, {
+				url: value,
+				e: e
+			});
 			throw new Error(`request error: ${e.message}`);
 		});
 
@@ -74,7 +81,10 @@ export default class Resolver {
 				!object['@context'].includes('https://www.w3.org/ns/activitystreams') :
 				object['@context'] !== 'https://www.w3.org/ns/activitystreams'
 		)) {
-			logger.error(`invalid response: ${value}`);
+			logger.error(`invalid response: ${value}`, {
+				url: value,
+				object: object
+			});
 			throw new Error('invalid response');
 		}
 

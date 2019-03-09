@@ -1,6 +1,8 @@
 <template>
-<ui-container :body-togglable="true">
-	<span slot="header"><fa icon="camera"/> {{ $t('title') }}</span>
+<ui-container :body-togglable="true"
+	:expanded="$store.state.device.expandUsersPhotos"
+	@toggle="expanded => $store.commit('device/set', { key: 'expandUsersPhotos', value: expanded })">
+	<template #header><fa icon="camera"/> {{ $t('title') }}</template>
 
 	<div class="dzsuvbsrrrwobdxifudxuefculdfiaxd">
 		<p class="initializing" v-if="fetching"><fa icon="spinner" pulse fixed-width/>{{ $t('loading') }}<mk-ellipsis/></p>

@@ -15,6 +15,8 @@ import signin from './private/signin';
 import discord from './service/discord';
 import github from './service/github';
 import twitter from './service/twitter';
+import Instance from '../../models/instance';
+import { toASCII } from 'punycode';
 
 // Init app
 const app = new Koa();
@@ -49,6 +51,10 @@ for (const endpoint of endpoints) {
 	if (endpoint.meta.requireFile) {
 		router.post(`/${endpoint.name}`, upload.single('file'), handler.bind(null, endpoint));
 	} else {
+		if (endpoint.name.includes('-')) {
+			// 後方互換性のため
+			router.post(`/${endpoint.name.replace(/\-/g, '_')}`, handler.bind(null, endpoint));
+		}
 		router.post(`/${endpoint.name}`, handler.bind(null, endpoint));
 	}
 }
@@ -59,6 +65,17 @@ router.post('/signin', signin);
 router.use(discord.routes());
 router.use(github.routes());
 router.use(twitter.routes());
+
+router.get('/v1/instance/peers', async ctx => {
+	const instances = await Instance.find({
+		}, {
+			host: 1
+		});
+
+	const punyCodes = instances.map(instance => toASCII(instance.host));
+
+	ctx.body = punyCodes;
+});
 
 // Return 404 for unknown API
 router.all('*', async ctx => {

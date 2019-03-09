@@ -9,6 +9,8 @@ export const meta = {
 		'en-US': 'Get blocking users.'
 	},
 
+	tags: ['blocking', 'account'],
+
 	requireCredential: true,
 
 	kind: 'following-read',
@@ -28,15 +30,17 @@ export const meta = {
 			validator: $.optional.type(ID),
 			transform: transform,
 		},
-	}
+	},
+
+	res: {
+		type: 'array',
+		items: {
+			type: 'Blocking',
+		}
+	},
 };
 
-export default define(meta, (ps, me) => new Promise(async (res, rej) => {
-	// Check if both of sinceId and untilId is specified
-	if (ps.sinceId && ps.untilId) {
-		return rej('cannot set sinceId and untilId');
-	}
-
+export default define(meta, async (ps, me) => {
 	const query = {
 		blockerId: me._id
 	} as any;
@@ -62,5 +66,5 @@ export default define(meta, (ps, me) => new Promise(async (res, rej) => {
 			sort: sort
 		});
 
-	res(await packMany(blockings, me));
-}));
+	return await packMany(blockings, me);
+});

@@ -1,19 +1,22 @@
 <template>
 <ui-container :body-togglable="true">
-	<template slot="header"><slot></slot></template>
+	<template #header><slot></slot></template>
 
 	<mk-error v-if="!fetching && !inited" @retry="init()"/>
 
-	<div class="efvhhmdq" v-size="[{ lt: 500, class: 'narrow' }]">
+	<div class="efvhhmdq" :class="{ iconOnly }" v-size="[{ lt: 500, class: 'narrow' }]">
+		<div class="no-users" v-if="inited && us.length == 0">
+			<p>{{ $t('no-users') }}</p>
+		</div>
 		<div class="user" v-for="user in us">
 			<mk-avatar class="avatar" :user="user"/>
-			<div class="body">
+			<div class="body" v-if="!iconOnly">
 				<div class="name">
 					<router-link class="name" :to="user | userPage" v-user-preview="user.id"><mk-user-name :user="user"/></router-link>
 					<p class="username">@{{ user | acct }}</p>
 				</div>
 				<div class="description" v-if="user.description" :title="user.description">
-					<mfm :text="user.description" :author="user" :i="$store.state.i" :custom-emojis="user.emojis" :should-break="false"/>
+					<mfm :text="user.description" :is-note="false" :author="user" :i="$store.state.i" :custom-emojis="user.emojis" :should-break="false"/>
 				</div>
 			</div>
 		</div>
@@ -26,8 +29,11 @@
 
 <script lang="ts">
 import Vue from 'vue';
+import i18n from '../../../i18n';
 
 export default Vue.extend({
+	i18n: i18n('common/views/components/user-list.vue'),
+
 	props: {
 		makePromise: {
 			required: true
@@ -91,6 +97,22 @@ export default Vue.extend({
 
 		> .user > .body > .description
 			display none
+
+	&.iconOnly
+		padding 12px
+
+		> .user
+			display inline-block
+			padding 0
+			border-bottom none
+
+			> .avatar
+				display inline-block
+				margin 4px
+
+	> .no-users
+		text-align center
+		color var(--text)
 
 	> .user
 		display flex

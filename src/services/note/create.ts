@@ -19,12 +19,13 @@ import UserList from '../../models/user-list';
 import resolveUser from '../../remote/resolve-user';
 import Meta from '../../models/meta';
 import config from '../../config';
-import registerHashtag from '../register-hashtag';
+import { updateHashtag } from '../update-hashtag';
 import isQuote from '../../misc/is-quote';
 import notesChart from '../../services/chart/notes';
 import perUserNotesChart from '../../services/chart/per-user-notes';
 import activeUsersChart from '../../services/chart/active-users';
 import instanceChart from '../../services/chart/instance';
+import * as deepcopy from 'deepcopy';
 
 import { erase, concat } from '../../prelude/array';
 import insertNoteUnread from './unread';
@@ -234,8 +235,8 @@ export default async (user: IUser, data: Option, silent = false) => new Promise<
 		});
 	}
 
-	// ハッシュタグ登録
-	for (const tag of tags) registerHashtag(user, tag);
+	// ハッシュタグ更新
+	for (const tag of tags) updateHashtag(user, tag);
 
 	// ファイルが添付されていた場合ドライブのファイルの「このファイルが添付された投稿一覧」プロパティにこの投稿を追加
 	if (data.files) {
@@ -596,6 +597,22 @@ async function publishToFollowers(note: INote, user: IUser, noteActivity: any) {
 	for (const inbox of queue) {
 		deliver(user as any, noteActivity, inbox);
 	}
+
+	// 後方互換製のため、Questionは時間差でNoteでも送る
+	// Questionに対応してないインスタンスは、2つめのNoteだけを採用する
+	// Questionに対応しているインスタンスは、同IDで採番されている2つめのNoteを無視する
+	setTimeout(() => {
+		if (noteActivity.object.type === 'Question') {
+			const asNote = deepcopy(noteActivity);
+
+			asNote.object.type = 'Note';
+			asNote.object.content = asNote.object._misskey_fallback_content;
+
+			for (const inbox of queue) {
+				deliver(user as any, asNote, inbox);
+			}
+		}
+	}, 10 * 1000);
 }
 
 function deliverNoteToMentionedRemoteUsers(mentionedUsers: IUser[], user: ILocalUser, noteActivity: any) {

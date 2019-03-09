@@ -1,5 +1,5 @@
 <template>
-<div class="header" :data-is-dark-background="user.bannerUrl != null">
+<div class="header" :class="{ shadow: $store.state.device.useShadow, round: $store.state.device.roundedCorners }">
 	<div class="banner-container" :style="style">
 		<div class="banner" ref="banner" :style="style" @click="onBannerClick"></div>
 		<div class="fade"></div>
@@ -12,18 +12,18 @@
 				<span v-if="user.isBot" :title="$t('is-bot')"><fa icon="robot"/></span>
 			</div>
 		</div>
+		<span class="followed" v-if="$store.getters.isSignedIn && $store.state.i.id != user.id && user.isFollowed">{{ $t('follows-you') }}</span>
+		<div class="actions" v-if="$store.getters.isSignedIn">
+			<button @click="menu" class="menu" ref="menu"><fa icon="ellipsis-h"/></button>
+			<mk-follow-button v-if="$store.state.i.id != user.id" :user="user" :inline="true" :transparent="false" class="follow"/>
+		</div>
 	</div>
 	<mk-avatar class="avatar" :user="user" :disable-preview="true"/>
 	<div class="body">
-		<div class="actions" v-if="$store.getters.isSignedIn">
-			<template v-if="$store.state.i.id != user.id">
-				<span class="followed" v-if="user.isFollowed">{{ $t('follows-you') }}</span>
-				<mk-follow-button :user="user" :inline="true" class="follow"/>
-			</template>
-			<ui-button @click="menu" ref="menu" :inline="true"><fa icon="ellipsis-h"/></ui-button>
-		</div>
 		<div class="description">
-			<mfm v-if="user.description" :text="user.description" :author="user" :i="$store.state.i" :custom-emojis="user.emojis"/>
+			<mfm v-if="user.description" :text="user.description" :is-note="false" :author="user" :i="$store.state.i" :custom-emojis="user.emojis"/>
+			<p v-else class="empty">{{ $t('no-description') }}</p>
+			<x-integrations :user="user" style="margin-top:16px;"/>
 		</div>
 		<div class="fields" v-if="user.fields">
 			<dl class="field" v-for="(field, i) in user.fields" :key="i">
@@ -53,9 +53,13 @@ import Vue from 'vue';
 import i18n from '../../../../i18n';
 import * as age from 's-age';
 import XUserMenu from '../../../../common/views/components/user-menu.vue';
+import XIntegrations from '../../../../common/views/components/integrations.vue';
 
 export default Vue.extend({
 	i18n: i18n('desktop/views/pages/user/user.header.vue'),
+	components: {
+		XIntegrations
+	},
 	props: ['user'],
 	computed: {
 		style(): any {
@@ -111,7 +115,7 @@ export default Vue.extend({
 
 		menu() {
 			this.$root.new(XUserMenu, {
-				source: this.$refs.menu.$el,
+				source: this.$refs.menu,
 				user: this.user
 			});
 		}
@@ -122,23 +126,13 @@ export default Vue.extend({
 <style lang="stylus" scoped>
 .header
 	background var(--face)
-	box-shadow var(--shadow)
-	border-radius var(--round)
 	overflow hidden
 
-	&[data-is-dark-background]
-		> .banner-container
-			> .banner
-				background-color #383838
+	&.round
+		border-radius 6px
 
-			> .fade
-				background linear-gradient(transparent, rgba(#000, 0.7))
-
-			> .title
-				color #fff
-
-				> .name
-					text-shadow 0 0 8px #000
+	&.shadow
+		box-shadow 0 3px 8px rgba(0, 0, 0, 0.2)
 
 	> .banner-container
 		height 250px
@@ -148,9 +142,10 @@ export default Vue.extend({
 
 		> .banner
 			height 100%
-			background-color #bfccd0
+			background-color #383838
 			background-size cover
 			background-position center
+			box-shadow 0 0 128px rgba(0, 0, 0, 0.5) inset
 
 		> .fade
 			position absolute
@@ -158,6 +153,31 @@ export default Vue.extend({
 			left 0
 			width 100%
 			height 78px
+			background linear-gradient(transparent, rgba(#000, 0.7))
+
+		> .followed
+			position absolute
+			top 12px
+			left 12px
+			padding 4px 6px
+			color #fff
+			background rgba(0, 0, 0, 0.7)
+			font-size 12px
+
+		> .actions
+			position absolute
+			top 12px
+			right 12px
+
+			> .menu
+				height 100%
+				display block
+				position absolute
+				left -42px
+				padding 0 14px
+				color #fff
+				text-shadow 0 0 8px #000
+				font-size 16px
 
 		> .title
 			position absolute
@@ -165,7 +185,7 @@ export default Vue.extend({
 			left 0
 			width 100%
 			padding 0 0 8px 154px
-			color #5e6367
+			color #fff
 
 			> .name
 				display block
@@ -173,6 +193,7 @@ export default Vue.extend({
 				line-height 32px
 				font-weight bold
 				font-size 1.8em
+				text-shadow 0 0 8px #000
 
 			> div
 				> *
@@ -202,17 +223,12 @@ export default Vue.extend({
 		padding 16px 16px 16px 154px
 		color var(--text)
 
-		> .actions
-			text-align right
-			padding-bottom 16px
-			margin-bottom 16px
-			border-bottom solid 1px var(--faceDivider)
+		> .description
+			font-size 15px
 
-			> *
-				margin-left 8px
-
-			> .follow
-				width 180px
+			> .empty
+				margin 0
+				opacity 0.5
 
 		> .fields
 			margin-top 16px
@@ -246,6 +262,10 @@ export default Vue.extend({
 			margin-top 16px
 			padding-top 16px
 			border-top solid 1px var(--faceDivider)
+			font-size 15px
+
+			&:empty
+				display none
 
 			> *
 				margin-right 16px

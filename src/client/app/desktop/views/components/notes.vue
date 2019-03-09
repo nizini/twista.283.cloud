@@ -1,10 +1,12 @@
 <template>
-<div class="mk-notes">
+<div class="mk-notes" :class="{ shadow: $store.state.device.useShadow, round: $store.state.device.roundedCorners }">
+	<slot name="header"></slot>
+
 	<div class="newer-indicator" :style="{ top: $store.state.uiHeaderHeight + 'px' }" v-show="queue.length > 0"></div>
 
-	<slot name="empty" v-if="notes.length == 0 && !fetching && requestInitPromise == null"></slot>
+	<div class="empty" v-if="notes.length == 0 && !fetching && inited">{{ $t('@.no-notes') }}</div>
 
-	<mk-error v-if="!fetching && requestInitPromise != null" @retry="resolveInitPromise"/>
+	<mk-error v-if="!fetching && !inited" @retry="init()"/>
 
 	<div class="placeholder" v-if="fetching">
 		<template v-for="i in 10">
@@ -15,7 +17,7 @@
 	<!-- トランジションを有効にするとなぜかメモリリークする -->
 	<component :is="!$store.state.device.reduceMotion ? 'transition-group' : 'div'" name="mk-notes" class="notes transition" tag="div" ref="notes">
 		<template v-for="(note, i) in _notes">
-			<x-note :note="note" :key="note.id" @update:note="onNoteUpdated(i, $event)" :compact="true" ref="note"/>
+			<mk-note :note="note" :key="note.id" @update:note="onNoteUpdated(i, $event)" :compact="true" ref="note"/>
 			<p class="date" :key="note.id + '_date'" v-if="i != notes.length - 1 && note._date != _notes[i + 1]._date">
 				<span><fa icon="angle-up"/>{{ note._datetext }}</span>
 				<span><fa icon="angle-down"/>{{ _notes[i + 1]._datetext }}</span>
@@ -23,8 +25,8 @@
 		</template>
 	</component>
 
-	<footer v-if="more">
-		<button @click="loadMore" :disabled="moreFetching" :style="{ cursor: moreFetching ? 'wait' : 'pointer' }">
+	<footer v-if="cursor != null">
+		<button @click="more" :disabled="moreFetching" :style="{ cursor: moreFetching ? 'wait' : 'pointer' }">
 			<template v-if="!moreFetching">{{ $t('@.load-more') }}</template>
 			<template v-if="moreFetching"><fa icon="spinner" pulse fixed-width/></template>
 		</button>
@@ -37,30 +39,26 @@ import Vue from 'vue';
 import i18n from '../../../i18n';
 import * as config from '../../../config';
 import shouldMuteNote from '../../../common/scripts/should-mute-note';
-import XNote from './note.vue';
 
 const displayLimit = 30;
 
 export default Vue.extend({
 	i18n: i18n(),
-	components: {
-		XNote
-	},
 
 	props: {
-		more: {
-			type: Function,
-			required: false
+		makePromise: {
+			required: true
 		}
 	},
 
 	data() {
 		return {
-			requestInitPromise: null as () => Promise<any[]>,
 			notes: [],
 			queue: [],
 			fetching: true,
-			moreFetching: false
+			moreFetching: false,
+			inited: false,
+			cursor: null
 		};
 	},
 
@@ -74,6 +72,10 @@ export default Vue.extend({
 				return note;
 			});
 		}
+	},
+
+	created() {
+		this.init();
 	},
 
 	mounted() {
@@ -97,24 +99,38 @@ export default Vue.extend({
 			Vue.set((this as any).notes, i, note);
 		},
 
-		init(promiseGenerator: () => Promise<any[]>) {
-			this.requestInitPromise = promiseGenerator;
-			this.resolveInitPromise();
-		},
-
-		resolveInitPromise() {
+		reload() {
 			this.queue = [];
 			this.notes = [];
+			this.init();
+		},
+
+		init() {
 			this.fetching = true;
-
-			const promise = this.requestInitPromise();
-
-			promise.then(notes => {
-				this.notes = notes;
-				this.requestInitPromise = null;
+			this.makePromise().then(x => {
+				if (Array.isArray(x)) {
+					this.notes = x;
+				} else {
+					this.notes = x.notes;
+					this.cursor = x.cursor;
+				}
+				this.inited = true;
 				this.fetching = false;
+				this.$emit('inited');
 			}, e => {
 				this.fetching = false;
+			});
+		},
+
+		more() {
+			if (this.cursor == null || this.moreFetching) return;
+			this.moreFetching = true;
+			this.makePromise(this.cursor).then(x => {
+				this.notes = this.notes.concat(x.notes);
+				this.cursor = x.cursor;
+				this.moreFetching = false;
+			}, e => {
+				this.moreFetching = false;
 			});
 		},
 
@@ -151,24 +167,11 @@ export default Vue.extend({
 			this.notes.push(note);
 		},
 
-		tail() {
-			return this.notes[this.notes.length - 1];
-		},
-
 		releaseQueue() {
 			for (const n of this.queue) {
 				this.prepend(n, true);
 			}
 			this.queue = [];
-		},
-
-		async loadMore() {
-			if (this.more == null) return;
-			if (this.moreFetching) return;
-
-			this.moreFetching = true;
-			await this.more();
-			this.moreFetching = false;
 		},
 
 		onScroll() {
@@ -178,7 +181,7 @@ export default Vue.extend({
 
 			if (this.$store.state.settings.fetchOnScroll !== false) {
 				const current = window.scrollY + window.innerHeight;
-				if (current > document.body.offsetHeight - 8) this.loadMore();
+				if (current > document.body.offsetHeight - 8) this.more();
 			}
 		}
 	}
@@ -187,6 +190,15 @@ export default Vue.extend({
 
 <style lang="stylus" scoped>
 .mk-notes
+	background var(--face)
+	overflow hidden
+
+	&.round
+		border-radius 6px
+
+	&.shadow
+		box-shadow 0 3px 8px rgba(0, 0, 0, 0.2)
+
 	.transition
 		.mk-notes-enter
 		.mk-notes-leave-to
@@ -195,6 +207,11 @@ export default Vue.extend({
 
 		> *
 			transition transform .3s ease, opacity .3s ease
+
+	> .empty
+		padding 16px
+		text-align center
+		color var(--text)
 
 	> .placeholder
 		padding 32px

@@ -13,6 +13,8 @@ export const meta = {
 		'en-US': 'Get notifications.'
 	},
 
+	tags: ['account', 'notifications'],
+
 	requireCredential: true,
 
 	kind: 'account-read',
@@ -52,15 +54,17 @@ export const meta = {
 			validator: $.optional.arr($.str.or(['follow', 'mention', 'reply', 'renote', 'quote', 'reaction', 'poll_vote', 'receiveFollowRequest'])),
 			default: [] as string[]
 		}
-	}
+	},
+
+	res: {
+		type: 'array',
+		items: {
+			type: 'Notification',
+		},
+	},
 };
 
-export default define(meta, (ps, user) => new Promise(async (res, rej) => {
-	// Check if both of sinceId and untilId is specified
-	if (ps.sinceId && ps.untilId) {
-		return rej('cannot set sinceId and untilId');
-	}
-
+export default define(meta, async (ps, user) => {
 	const hideUserIds = await getHideUserIds(user);
 
 	const query = {
@@ -114,10 +118,10 @@ export default define(meta, (ps, user) => new Promise(async (res, rej) => {
 			sort: sort
 		});
 
-	res(await packMany(notifications));
-
 	// Mark all as read
 	if (notifications.length > 0 && ps.markAsRead) {
 		read(user._id, notifications);
 	}
-}));
+
+	return await packMany(notifications);
+});

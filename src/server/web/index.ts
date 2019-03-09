@@ -21,6 +21,7 @@ import getNoteSummary from '../../misc/get-note-summary';
 import fetchMeta from '../../misc/fetch-meta';
 import Emoji from '../../models/emoji';
 import * as pkg from '../../../package.json';
+import { genOpenapiSpec } from '../api/openapi/gen-spec';
 
 const client = `${__dirname}/../../client/`;
 
@@ -54,7 +55,6 @@ router.get('/assets/*', async ctx => {
 	await send(ctx as any, ctx.path, {
 		root: client,
 		maxage: ms('7 days'),
-		immutable: true
 	});
 });
 
@@ -79,13 +79,28 @@ router.get('/manifest.json', async ctx => {
 	});
 });
 
+router.get('/robots.txt', async ctx => {
+	await send(ctx as any, '/assets/robots.txt', {
+		root: client
+	});
+});
+
 //#endregion
 
 // Docs
 router.use('/docs', docs.routes());
+router.get('/api-doc', async ctx => {
+	await send(ctx as any, '/assets/redoc.html', {
+		root: client
+	});
+});
 
 // URL preview endpoint
 router.get('/url', require('./url-preview'));
+
+router.get('/api.json', async ctx => {
+	ctx.body = genOpenapiSpec();
+});
 
 const getFeed = async (acct: string) => {
 	const { username, host } = parseAcct(acct);
