@@ -1,6 +1,6 @@
 <template>
 <mk-ui>
-	<span slot="header"><span style="margin-right:4px;"><fa :icon="faNewspaper"/></span>{{ $t('@.featured-notes') }}</span>
+	<template #header><span style="margin-right:4px;"><fa :icon="faNewspaper"/></span>{{ $t('@.featured-notes') }}</template>
 
 	<main>
 		<sequential-entrance animation="entranceFromTop" delay="25">
@@ -36,7 +36,7 @@ export default Vue.extend({
 			this.fetching = true;
 
 			this.$root.api('notes/featured', {
-				limit: 20
+				limit: 30
 			}).then(notes => {
 				notes.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 				this.notes = notes;
@@ -51,21 +51,11 @@ export default Vue.extend({
 
 <style lang="stylus" scoped>
 main
-	width 100%
-	max-width 680px
-	margin 0 auto
-	padding 8px
-
 	> * > .post
 		margin-bottom 8px
 
 	@media (min-width 500px)
-		padding 16px
-
 		> * > .post
 			margin-bottom 16px
-
-	@media (min-width 600px)
-		padding 32px
 
 </style>

@@ -8,7 +8,8 @@ import autobind from 'autobind-decorator';
 import * as mongo from 'mongodb';
 import db from '../../db/mongodb';
 import { ICollection } from 'monk';
-import Logger from '../../misc/logger';
+import Logger from '../logger';
+import { Schema } from '../../misc/schema';
 
 const logger = new Logger('chart');
 
@@ -345,4 +346,19 @@ export default abstract class Chart<T extends Obj> {
 
 		return res;
 	}
+}
+
+export function convertLog(logSchema: Schema): Schema {
+	const v: Schema = JSON.parse(JSON.stringify(logSchema)); // copy
+	if (v.type === 'number') {
+		v.type = 'array';
+		v.items = {
+			type: 'number'
+		};
+	} else if (v.type === 'object') {
+		for (const k of Object.keys(v.properties)) {
+			v.properties[k] = convertLog(v.properties[k]);
+		}
+	}
+	return v;
 }

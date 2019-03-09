@@ -1,6 +1,6 @@
 <template>
 <div class="header" :style="style">
-	<p class="warn" v-if="env != 'production'">{{ $t('@.do-not-use-in-production') }}</p>
+	<p class="warn" v-if="env != 'production'">{{ $t('@.do-not-use-in-production') }} <a href="/assets/flush.html?force">Flush</a></p>
 	<div class="main" ref="main">
 		<div class="backdrop"></div>
 		<div class="main">
@@ -61,7 +61,7 @@ export default Vue.extend({
 	computed: {
 		style(): any {
 			return {
-				'box-shadow': this.$store.state.settings.useShadow ? '0 0px 8px rgba(0, 0, 0, 0.2)' : 'none'
+				'box-shadow': this.$store.state.device.useShadow ? '0 0px 8px rgba(0, 0, 0, 0.2)' : 'none'
 			};
 		}
 	},

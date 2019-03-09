@@ -6,16 +6,24 @@ export const meta = {
 		'ja-JP': '自分の作成したユーザーリスト一覧を取得します。'
 	},
 
+	tags: ['lists', 'account'],
+
 	requireCredential: true,
 
-	kind: 'account-read'
+	kind: 'account-read',
+
+	res: {
+		type: 'array',
+		items: {
+			type: 'UserList',
+		},
+	},
 };
 
-export default define(meta, (ps, me) => new Promise(async (res, rej) => {
-	// Fetch lists
+export default define(meta, async (ps, me) => {
 	const userLists = await UserList.find({
 		userId: me._id,
 	});
 
-	res(await Promise.all(userLists.map(x => pack(x))));
-}));
+	return await Promise.all(userLists.map(x => pack(x)));
+});

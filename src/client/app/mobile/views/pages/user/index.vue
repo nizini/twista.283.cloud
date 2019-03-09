@@ -1,9 +1,9 @@
 <template>
 <mk-ui>
-	<template slot="header" v-if="!fetching"><img :src="avator" alt="">
-		<mk-user-name :user="user"/>
+	<template #header v-if="!fetching">
+		<img :src="avator" alt=""><mk-user-name :user="user" :key="user.id"/>
 	</template>
-	<main v-if="!fetching">
+	<div class="wwtwuxyh" v-if="!fetching">
 		<div class="is-suspended" v-if="user.isSuspended"><p><fa icon="exclamation-triangle"/> {{ $t('@.user-suspended') }}</p></div>
 		<div class="is-remote" v-if="user.host != null"><p><fa icon="exclamation-triangle"/> {{ $t('@.is-remote-user') }}<a :href="user.url || user.uri" target="_blank">{{ $t('@.view-on-remote') }}</a></p></div>
 		<header>
@@ -17,12 +17,13 @@
 					<mk-follow-button v-if="$store.getters.isSignedIn && $store.state.i.id != user.id" :user="user"/>
 				</div>
 				<div class="title">
-					<h1><mk-user-name :user="user"/></h1>
+					<h1><mk-user-name :user="user" :key="user.id"/></h1>
 					<span class="username"><mk-acct :user="user" :detail="true" /></span>
 					<span class="followed" v-if="user.isFollowed">{{ $t('follows-you') }}</span>
 				</div>
 				<div class="description">
-					<mfm v-if="user.description" :text="user.description" :author="user" :i="$store.state.i" :custom-emojis="user.emojis"/>
+					<mfm v-if="user.description" :text="user.description" :is-note="false" :author="user" :i="$store.state.i" :custom-emojis="user.emojis" :key="user.id"/>
+					<x-integrations :user="user" style="margin:20px 0;"/>
 				</div>
 				<div class="fields" v-if="user.fields">
 					<dl class="field" v-for="(field, i) in user.fields" :key="i">
@@ -58,22 +59,22 @@
 				</div>
 			</div>
 		</header>
-		<nav v-if="$route.name == 'user'">
+		<nav v-if="$route.name == 'user'" :class="{ shadow: $store.state.device.useShadow }">
 			<div class="nav-container">
 				<a :data-active="page == 'home'" @click="page = 'home'"><fa icon="home"/> {{ $t('overview') }}</a>
 				<a :data-active="page == 'notes'" @click="page = 'notes'"><fa :icon="['far', 'comment-alt']"/> {{ $t('timeline') }}</a>
 				<a :data-active="page == 'media'" @click="page = 'media'"><fa icon="image"/> {{ $t('media') }}</a>
 			</div>
 		</nav>
-		<div class="body">
+		<main>
 			<template v-if="$route.name == 'user'">
-				<x-home v-if="page == 'home'" :user="user"/>
-				<mk-user-timeline v-if="page == 'notes'" :user="user" key="tl"/>
-				<mk-user-timeline v-if="page == 'media'" :user="user" :with-media="true" key="media"/>
+				<x-home v-if="page == 'home'" :user="user" :key="user.id"/>
+				<mk-user-timeline v-if="page == 'notes'" :user="user" :key="`tl:${user.id}`"/>
+				<mk-user-timeline v-if="page == 'media'" :user="user" :with-media="true" :key="`media:${user.id}`"/>
 			</template>
 			<router-view :user="user"></router-view>
-		</div>
-	</main>
+		</main>
+	</div>
 </mk-ui>
 </template>
 
@@ -86,11 +87,13 @@ import Progress from '../../../../common/scripts/loading';
 import XUserMenu from '../../../../common/views/components/user-menu.vue';
 import XHome from './home.vue';
 import { getStaticImageUrl } from '../../../../common/scripts/get-static-image-url';
+import XIntegrations from '../../../../common/views/components/integrations.vue';
 
 export default Vue.extend({
 	i18n: i18n('mobile/views/pages/user.vue'),
 	components: {
-		XHome
+		XHome,
+		XIntegrations
 	},
 	data() {
 		return {
@@ -146,7 +149,7 @@ export default Vue.extend({
 </script>
 
 <style lang="stylus" scoped>
-main
+.wwtwuxyh
 	$bg = var(--face)
 
 	> .is-suspended
@@ -245,6 +248,9 @@ main
 				margin 8px 0
 				color var(--mobileUserPageDescription)
 
+				@media (max-width 450px)
+					font-size 15px
+
 			> .fields
 				margin 8px 0
 
@@ -276,6 +282,9 @@ main
 			> .info
 				margin 8px 0
 
+				@media (max-width 450px)
+					font-size 15px
+
 				> p
 					display inline
 					margin 0 16px 0 0
@@ -306,15 +315,17 @@ main
 		position -webkit-sticky
 		position sticky
 		top 47px
-		box-shadow 0 4px 4px var(--mobileUserPageHeaderShadow)
 		background-color $bg
 		z-index 2
+
+		&.shadow
+			box-shadow 0 4px 4px var(--mobileUserPageHeaderShadow)
 
 		> .nav-container
 			display flex
 			justify-content center
 			margin 0 auto
-			max-width 600px
+			max-width 616px
 
 			> a
 				display block
@@ -334,17 +345,5 @@ main
 					font-weight bold
 					color var(--primary)
 					border-color var(--primary)
-
-	> .body
-		max-width 680px
-		margin 0 auto
-		padding 8px
-		color var(--text)
-
-		@media (min-width 500px)
-			padding 16px
-
-		@media (min-width 600px)
-			padding 32px
 
 </style>

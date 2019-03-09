@@ -1,6 +1,7 @@
 import $ from 'cafy';
 import define from '../../define';
-import usersChart from '../../../../services/chart/users';
+import usersChart, { usersLogSchema } from '../../../../services/chart/users';
+import { convertLog } from '../../../../services/chart';
 
 export const meta = {
 	stability: 'stable',
@@ -8,6 +9,8 @@ export const meta = {
 	desc: {
 		'ja-JP': 'ユーザーのチャートを取得します。'
 	},
+
+	tags: ['charts', 'users'],
 
 	params: {
 		span: {
@@ -24,11 +27,11 @@ export const meta = {
 				'ja-JP': '最大数。例えば 30 を指定したとすると、スパンが"day"の場合は30日分のデータが、スパンが"hour"の場合は30時間分のデータが返ります。'
 			}
 		},
-	}
+	},
+
+	res: convertLog(usersLogSchema),
 };
 
-export default define(meta, (ps) => new Promise(async (res, rej) => {
-	const stats = await usersChart.getChart(ps.span as any, ps.limit);
-
-	res(stats);
-}));
+export default define(meta, async (ps) => {
+	return await usersChart.getChart(ps.span as any, ps.limit);
+});

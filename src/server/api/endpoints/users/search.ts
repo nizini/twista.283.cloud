@@ -8,6 +8,8 @@ export const meta = {
 		'ja-JP': 'ユーザーを検索します。'
 	},
 
+	tags: ['users'],
+
 	requireCredential: false,
 
 	params: {
@@ -50,9 +52,16 @@ export const meta = {
 			}
 		},
 	},
+
+	res: {
+		type: 'array',
+		items: {
+			type: 'User',
+		}
+	},
 };
 
-export default define(meta, (ps, me) => new Promise(async (res, rej) => {
+export default define(meta, async (ps, me) => {
 	const isUsername = validateUsername(ps.query.replace('@', ''), !ps.localOnly);
 
 	let users: IUser[] = [];
@@ -80,5 +89,5 @@ export default define(meta, (ps, me) => new Promise(async (res, rej) => {
 		}
 	}
 
-	res(await Promise.all(users.map(user => pack(user, me, { detail: ps.detail }))));
-}));
+	return await Promise.all(users.map(user => pack(user, me, { detail: ps.detail })));
+});

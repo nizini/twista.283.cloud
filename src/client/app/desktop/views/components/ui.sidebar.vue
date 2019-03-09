@@ -1,20 +1,18 @@
 <template>
-<div class="header" :class="navbar">
+<div class="header" :class="navbar" :data-shadow="$store.state.device.useShadow">
 	<div class="body">
 		<div class="post">
 			<button @click="post" :title="$t('title')"><fa icon="pencil-alt"/></button>
 		</div>
 
 		<div class="nav" v-if="$store.getters.isSignedIn">
-			<template v-if="!$store.state.device.deckMode">
-				<div class="home" :class="{ active: $route.name == 'index' }" @click="goToTop">
-					<router-link to="/"><fa icon="home"/></router-link>
-				</div>
-			</template>
+			<div class="home" :class="{ active: $route.name == 'index' }" @click="goToTop">
+				<router-link to="/"><fa icon="home"/></router-link>
+			</div>
 			<div class="featured" :class="{ active: $route.name == 'featured' }">
 				<router-link to="/featured"><fa :icon="faNewspaper"/></router-link>
 			</div>
-			<div class="explore" :class="{ active: $route.name == 'explore' }">
+			<div class="explore" :class="{ active: $route.name == 'explore' || $route.name == 'explore-tag' }">
 				<router-link to="/explore"><fa :icon="faHashtag"/></router-link>
 			</div>
 			<div class="game">
@@ -50,7 +48,7 @@
 				</router-link>
 			</div>
 			<div>
-				<template v-if="$store.state.device.deckMode">
+				<template v-if="$store.state.device.inDeckMode">
 					<a @click="toggleDeckMode(false)"><fa icon="home"/></a>
 				</template>
 				<template v-else>
@@ -64,7 +62,7 @@
 	</div>
 
 	<transition :name="`slide-${navbar}`">
-		<div class="notifications" v-if="showNotifications" ref="notifications" :class="navbar">
+		<div class="notifications" v-if="showNotifications" ref="notifications" :class="navbar" :data-shadow="$store.state.device.useShadow">
 			<mk-notifications/>
 		</div>
 	</transition>
@@ -122,7 +120,7 @@ export default Vue.extend({
 	methods: {
 		toggleDeckMode(deck) {
 			this.$store.commit('device/set', { key: 'deckMode', value: deck });
-			location.reload();
+			location.replace('/');
 		},
 
 		onReversiInvited() {
@@ -228,11 +226,15 @@ export default Vue.extend({
 
 	&.left
 		left 0
-		box-shadow var(--shadowRight)
+
+		&[data-shadow]
+			box-shadow 4px 0 4px rgba(0, 0, 0, 0.1)
 
 	&.right
 		right 0
-		box-shadow var(--shadowLeft)
+
+		&[data-shadow]
+			box-shadow -4px 0 4px rgba(0, 0, 0, 0.1)
 
 	> .body
 		position fixed
@@ -304,11 +306,15 @@ export default Vue.extend({
 
 		&.left
 			left $width
-			box-shadow var(--shadowRight)
+
+			&[data-shadow]
+				box-shadow 4px 0 4px rgba(0, 0, 0, 0.1)
 
 		&.right
 			right $width
-			box-shadow var(--shadowLeft)
+
+			&[data-shadow]
+				box-shadow -4px 0 4px rgba(0, 0, 0, 0.1)
 
 	.nav
 		> *
