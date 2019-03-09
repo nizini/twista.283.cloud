@@ -11,7 +11,7 @@
 		<p :class="{ active: page == 'apps' }" @mousedown="page = 'apps'"><fa icon="puzzle-piece" fixed-width/>{{ $t('@._settings.apps') }}</p>
 		<p :class="{ active: page == 'security' }" @mousedown="page = 'security'"><fa icon="unlock-alt" fixed-width/>{{ $t('@._settings.security') }}</p>
 		<p :class="{ active: page == 'api' }" @mousedown="page = 'api'"><fa icon="key" fixed-width/>API</p>
-		<p :class="{ active: page == 'emoji' }" @mousedown="page = 'emoji'"><fa :icon="faGrin" fixed-width/>{{ $t('emoji') }}</p>
+		<p :class="{ active: page == 'emoji' }" @mousedown="page = 'emoji'"><fa :icon="faGrin" fixed-width/>{{ $t('@._settings.emoji') }}</p>
 		<p :class="{ active: page == 'other' }" @mousedown="page = 'other'"><fa icon="cogs" fixed-width/>{{ $t('@._settings.other') }}</p>
 	</div>
 	<div class="pages">
