@@ -1,21 +1,21 @@
-import * as bq from 'bee-queue';
+import * as Bull from 'bull';
 import * as httpSignature from 'http-signature';
-import parseAcct from '../../../misc/acct/parse';
-import User, { IRemoteUser } from '../../../models/user';
-import perform from '../../../remote/activitypub/perform';
-import { resolvePerson, updatePerson } from '../../../remote/activitypub/models/person';
+import parseAcct from '../../misc/acct/parse';
+import User, { IRemoteUser } from '../../models/user';
+import perform from '../../remote/activitypub/perform';
+import { resolvePerson, updatePerson } from '../../remote/activitypub/models/person';
 import { toUnicode } from 'punycode';
 import { URL } from 'url';
-import { publishApLogStream } from '../../../services/stream';
-import Logger from '../../../services/logger';
-import { registerOrFetchInstanceDoc } from '../../../services/register-or-fetch-instance-doc';
-import Instance from '../../../models/instance';
-import instanceChart from '../../../services/chart/instance';
+import { publishApLogStream } from '../../services/stream';
+import Logger from '../../services/logger';
+import { registerOrFetchInstanceDoc } from '../../services/register-or-fetch-instance-doc';
+import Instance from '../../models/instance';
+import instanceChart from '../../services/chart/instance';
 
 const logger = new Logger('inbox');
 
 // ユーザーのinboxにアクティビティが届いた時の処理
-export default async (job: bq.Job, done: any): Promise<void> => {
+export default async (job: Bull.Job): Promise<void> => {
 	const signature = job.data.signature;
 	const activity = job.data.activity;
 
@@ -33,7 +33,6 @@ export default async (job: bq.Job, done: any): Promise<void> => {
 		const { username, host } = parseAcct(keyIdLower.slice('acct:'.length));
 		if (host === null) {
 			logger.warn(`request was made by local user: @${username}`);
-			done();
 			return;
 		}
 
@@ -42,7 +41,6 @@ export default async (job: bq.Job, done: any): Promise<void> => {
 			ValidateActivity(activity, host);
 		} catch (e) {
 			logger.warn(e.message);
-			done();
 			return;
 		}
 
@@ -50,8 +48,7 @@ export default async (job: bq.Job, done: any): Promise<void> => {
 		// TODO: いちいちデータベースにアクセスするのはコスト高そうなのでどっかにキャッシュしておく
 		const instance = await Instance.findOne({ host: host.toLowerCase() });
 		if (instance && instance.isBlocked) {
-			logger.warn(`Blocked request: ${host}`);
-			done();
+			logger.info(`Blocked request: ${host}`);
 			return;
 		}
 
@@ -63,7 +60,6 @@ export default async (job: bq.Job, done: any): Promise<void> => {
 			ValidateActivity(activity, host);
 		} catch (e) {
 			logger.warn(e.message);
-			done();
 			return;
 		}
 
@@ -72,7 +68,6 @@ export default async (job: bq.Job, done: any): Promise<void> => {
 		const instance = await Instance.findOne({ host: host.toLowerCase() });
 		if (instance && instance.isBlocked) {
 			logger.warn(`Blocked request: ${host}`);
-			done();
 			return;
 		}
 
@@ -82,7 +77,7 @@ export default async (job: bq.Job, done: any): Promise<void> => {
 		}) as IRemoteUser;
 	}
 
-	// Update activityの場合は、ここで署名検証/更新処理まで実施して終了
+	// Update Person activityの場合は、ここで署名検証/更新処理まで実施して終了
 	if (activity.type === 'Update') {
 		if (activity.object && activity.object.type === 'Person') {
 			if (user == null) {
@@ -92,9 +87,8 @@ export default async (job: bq.Job, done: any): Promise<void> => {
 			} else {
 				updatePerson(activity.actor, null, activity.object);
 			}
+			return;
 		}
-		done();
-		return;
 	}
 
 	// アクティビティを送信してきたユーザーがまだMisskeyサーバーに登録されていなかったら登録する
@@ -103,13 +97,11 @@ export default async (job: bq.Job, done: any): Promise<void> => {
 	}
 
 	if (user === null) {
-		done(new Error('failed to resolve user'));
-		return;
+		throw new Error('failed to resolve user');
 	}
 
 	if (!httpSignature.verifySignature(signature, user.publicKey.publicKeyPem)) {
 		logger.error('signature verification failed');
-		done();
 		return;
 	}
 
@@ -136,12 +128,7 @@ export default async (job: bq.Job, done: any): Promise<void> => {
 	});
 
 	// アクティビティを処理
-	try {
-		await perform(user, activity);
-		done();
-	} catch (e) {
-		done(e);
-	}
+	await perform(user, activity);
 };
 
 /**

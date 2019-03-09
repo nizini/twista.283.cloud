@@ -138,6 +138,7 @@ common:
     security: "セキュリティ"
     signin: "ログイン履歴"
     password: "パスワード"
+    emoji: "カスタム絵文字"
     other: "その他"
     appearance: "デザイン"
     behavior: "動作"

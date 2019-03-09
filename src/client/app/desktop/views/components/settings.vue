@@ -11,8 +11,8 @@
 		<p :class="{ active: page == 'apps' }" @mousedown="page = 'apps'"><fa icon="puzzle-piece" fixed-width/>{{ $t('@._settings.apps') }}</p>
 		<p :class="{ active: page == 'security' }" @mousedown="page = 'security'"><fa icon="unlock-alt" fixed-width/>{{ $t('@._settings.security') }}</p>
 		<p :class="{ active: page == 'api' }" @mousedown="page = 'api'"><fa icon="key" fixed-width/>API</p>
-		<p :class="{ active: page == 'emoji' }" @mousedown="page = 'emoji'"><fa :icon="faGrin" fixed-width/>{{ $t('emoji') }}</p>
-		<p :class="{ active: page == 'other' }" @mousedown="page = 'other'"><fa icon="cogs" fixed-width/>{{ $t('other') }}</p>
+		<p :class="{ active: page == 'emoji' }" @mousedown="page = 'emoji'"><fa :icon="faGrin" fixed-width/>{{ $t('@._settings.emoji') }}</p>
+		<p :class="{ active: page == 'other' }" @mousedown="page = 'other'"><fa icon="cogs" fixed-width/>{{ $t('@._settings.other') }}</p>
 	</div>
 	<div class="pages">
 		<x-settings :page="page"/>
@@ -24,9 +24,7 @@
 import Vue from 'vue';
 import i18n from '../../../i18n';
 import XSettings from '../../../common/views/components/settings/settings.vue';
-
-import { url, version } from '../../../config';
-import checkForUpdate from '../../../common/scripts/check-for-update';
+import { faGrin } from '@fortawesome/free-regular-svg-icons';
 
 export default Vue.extend({
 	i18n: i18n(),
@@ -47,6 +45,7 @@ export default Vue.extend({
 	data() {
 		return {
 			page: this.initialPage || 'profile',
+			faGrin
 		};
 	},
 });

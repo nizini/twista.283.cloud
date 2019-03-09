@@ -19,6 +19,7 @@ Note.createIndex('userId');
 Note.createIndex('mentions');
 Note.createIndex('visibleUserIds');
 Note.createIndex('replyId');
+Note.createIndex('renoteId');
 Note.createIndex('tagsLower');
 Note.createIndex('_user.host');
 Note.createIndex('_files._id');
@@ -35,6 +36,7 @@ export type INote = {
 	_id: mongo.ObjectID;
 	createdAt: Date;
 	deletedAt: Date;
+	updatedAt?: Date;
 	fileIds: mongo.ObjectID[];
 	replyId: mongo.ObjectID;
 	renoteId: mongo.ObjectID;

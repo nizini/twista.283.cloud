@@ -20,6 +20,7 @@ const languages = [
 	'fr-FR',
 	'ja-JP',
 	'ja-KS',
+	'ja-PL',
 	'ko-KR',
 	'nl-NL',
 	'pl-PL',
@@ -28,6 +29,7 @@ const languages = [
 
 const primaries = {
 	'ja': 'JP',
+	'zh': 'CN',
 };
 
 const locales = languages.reduce((a, c) => (a[c] = yaml.safeLoad(fs.readFileSync(`${__dirname}/${c}.yml`, 'utf-8')) || {}, a), {});

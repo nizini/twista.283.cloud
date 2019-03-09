@@ -73,7 +73,7 @@ function greet() {
 		console.log(chalk.keyword('orange')(' If you like Misskey, please donate to support development. https://www.patreon.com/syuilo'));
 
 		console.log('');
-		console.log(chalk`<${os.hostname()} {gray (PID: ${process.pid.toString()})}>`);
+		console.log(chalk`< ${os.hostname()} {gray (PID: ${process.pid.toString()})} >`);
 	}
 
 	bootLogger.info('Welcome to Misskey!');
@@ -117,9 +117,6 @@ async function masterMain() {
 		await spawnWorkers(config.clusterLimit);
 	}
 
-	// start queue
-	require('./queue').default();
-
 	bootLogger.succ(`Now listening on port ${config.port} on ${config.url}`, null, true);
 }
 
@@ -129,6 +126,9 @@ async function masterMain() {
 async function workerMain() {
 	// start server
 	await require('./server').default();
+
+	// start job queue
+	require('./queue').default();
 
 	if (cluster.isWorker) {
 		// Send a 'ready' message to parent process
@@ -150,13 +150,9 @@ async function queueMain() {
 	bootLogger.succ('Misskey initialized');
 
 	// start processor
-	const queue = require('./queue').default();
+	require('./queue').default();
 
-	if (queue) {
-		bootLogger.succ('Queue started', null, true);
-	} else {
-		bootLogger.error('Queue not available');
-	}
+	bootLogger.succ('Queue started', null, true);
 }
 
 const runningNodejsVersion = process.version.slice(1).split('.').map(x => parseInt(x, 10));
