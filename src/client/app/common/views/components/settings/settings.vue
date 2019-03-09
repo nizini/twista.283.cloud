@@ -284,9 +284,9 @@
       <x-api/>
     </template>
 
-		<div class="emoji" v-show="page == 'emoji'">
-			<x-emoji-settings/>
-		</div>
+    <template v-if="page == null || page == 'emoji'">
+      <x-emoji-settings/>
+    </template>
 
     <template v-if="page == null || page == 'other'">
       <ui-card>
