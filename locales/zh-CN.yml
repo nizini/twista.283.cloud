@@ -314,6 +314,7 @@ common/views/pages/explore.vue:
   users-info: "当前有{users}个注册用户"
 common/views/components/url-preview.vue:
   enable-player: "打开播放器"
+  disable-player: "关闭播放器"
 common/views/components/user-list.vue:
   no-users: "无用户"
 common/views/components/games/reversi/reversi.vue:
@@ -647,12 +648,16 @@ common/views/components/profile-editor.vue:
   email-verified: "电子邮件地址已验证"
   email-not-verified: "邮件地址尚未验证。 请检查您的邮箱。"
   export: "导出"
+  import: "导入"
+  export-and-import: "导出/导入"
   export-targets:
     all-notes: "所有发帖"
     following-list: "关注列表"
     mute-list: "屏蔽列表"
     blocking-list: "黑名单"
+    user-lists: "列表"
   export-requested: "导出请求已提交。可能需要花一些时间。导出的文件将保存到网盘中。"
+  import-requested: "导入请求已提交。这可能需要花一点时间。"
   enter-password: "请输入您的密码"
   danger-zone: "危险选项"
   delete-account: "删除帐户"
@@ -1052,7 +1057,7 @@ admin/views/dashboard.vue:
   this-instance: "此实例"
   federated: "联合"
 admin/views/queue.vue:
-  operation: "操作"
+  title: "队列"
   remove-all-jobs: "清除所有作业"
 admin/views/abuse.vue:
   title: "举报垃圾信息"
@@ -1347,8 +1352,6 @@ desktop/views/pages/selectdrive.vue:
 desktop/views/pages/search.vue:
   not-available: "在此实例的设置中关闭搜索功能。"
   not-found: "没有找到“{q}”的帖子"
-desktop/views/pages/share.vue:
-  share-with: "共享{name}"
 desktop/views/pages/tag.vue:
   no-posts-found: "没有找到带有主题标签“{q}”的帖子"
 desktop/views/pages/user-list.users.vue:

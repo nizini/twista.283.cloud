@@ -335,6 +335,7 @@ common/views/pages/explore.vue:
 
 common/views/components/url-preview.vue:
   enable-player: "プレイヤーを開く"
+  disable-player: "プレイヤーを閉じる"
 
 common/views/components/user-list.vue:
   no-users: "ユーザーがいません"
@@ -702,12 +703,16 @@ common/views/components/profile-editor.vue:
   email-verified: "メールアドレスが確認されました"
   email-not-verified: "メールアドレスが確認されていません。メールボックスをご確認ください。"
   export: "エクスポート"
+  import: "インポート"
+  export-and-import: "エクスポートとインポート"
   export-targets:
     all-notes: "すべての投稿データ"
     following-list: "フォロー"
     mute-list: "ミュート"
     blocking-list: "ブロック"
+    user-lists: "リスト"
   export-requested: "エクスポートをリクエストしました。これには時間がかかる場合があります。エクスポートが終わると、ドライブにファイルが追加されます。"
+  import-requested: "インポートをリクエストしました。これには時間がかかる場合があります。"
   enter-password: "パスワードを入力してください"
   danger-zone: "危険な設定"
   delete-account: "アカウントを削除"
@@ -1176,7 +1181,7 @@ admin/views/dashboard.vue:
   federated: "連合"
 
 admin/views/queue.vue:
-  operation: "操作"
+  title: "キュー"
   remove-all-jobs: "すべてのジョブをクリア"
 
 admin/views/abuse.vue:
@@ -1486,9 +1491,6 @@ desktop/views/pages/selectdrive.vue:
 desktop/views/pages/search.vue:
   not-available: "検索機能はインスタンスの設定で無効になっています。"
   not-found: "「{q}」に関する投稿は見つかりませんでした。"
-
-desktop/views/pages/share.vue:
-  share-with: "{name}で共有"
 
 desktop/views/pages/tag.vue:
   no-posts-found: "ハッシュタグ「{q}」が付けられた投稿は見つかりませんでした。"

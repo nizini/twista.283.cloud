@@ -19,6 +19,8 @@ import vote from '../../../services/note/polls/vote';
 import { apLogger } from '../logger';
 import { IDriveFile } from '../../../models/drive-file';
 import { deliverQuestionUpdate } from '../../../services/note/polls/update';
+import Instance from '../../../models/instance';
+import { extractDbHost } from '../../../misc/convert-host';
 
 const logger = apLogger;
 
@@ -55,7 +57,7 @@ export async function createNote(value: any, resolver?: Resolver, silent = false
 
 	const object: any = await resolver.resolve(value);
 
-	if (!object || !['Note', 'Question'].includes(object.type)) {
+	if (!object || !['Note', 'Question', 'Article'].includes(object.type)) {
 		logger.error(`invalid note: ${value}`, {
 			resolver: {
 				history: resolver.getHistory()
@@ -111,17 +113,36 @@ export async function createNote(value: any, resolver?: Resolver, silent = false
 	note.attachment = Array.isArray(note.attachment) ? note.attachment : note.attachment ? [note.attachment] : [];
 	const files = note.attachment
 		.map(attach => attach.sensitive = note.sensitive)
-		? await Promise.all(note.attachment.map(x => limit(() => resolveImage(actor, x)) as Promise<IDriveFile>))
+		? (await Promise.all(note.attachment.map(x => limit(() => resolveImage(actor, x)) as Promise<IDriveFile>)))
+			.filter(image => image != null)
 		: [];
 
 	// リプライ
-	const reply = note.inReplyTo ? await resolveNote(note.inReplyTo, resolver) : null;
+	const reply: INote = note.inReplyTo
+		? await resolveNote(note.inReplyTo, resolver).catch(e => {
+			// 4xxの場合はリプライしてないことにする
+			if (e.statusCode >= 400 && e.statusCode < 500) {
+				logger.warn(`Ignored inReplyTo ${note.inReplyTo} - ${e.statusCode} `);
+				return null;
+			}
+			logger.warn(`Error in inReplyTo ${note.inReplyTo} - ${e.statusCode || e}`);
+			throw e;
+		})
+		: null;
 
 	// 引用
 	let quote: INote;
 
 	if (note._misskey_quote && typeof note._misskey_quote == 'string') {
-		quote = await resolveNote(note._misskey_quote).catch(() => null);
+		quote = await resolveNote(note._misskey_quote).catch(e => {
+			// 4xxの場合は引用してないことにする
+			if (e.statusCode >= 400 && e.statusCode < 500) {
+				logger.warn(`Ignored quote target ${note.inReplyTo} - ${e.statusCode} `);
+				return null;
+			}
+			logger.warn(`Error in quote target ${note.inReplyTo} - ${e.statusCode || e}`);
+			throw e;
+		});
 	}
 
 	const cw = note.summary === '' ? null : note.summary;
@@ -178,6 +199,7 @@ export async function createNote(value: any, resolver?: Resolver, silent = false
 		files,
 		reply,
 		renote: quote,
+		name: note.name,
 		cw,
 		text,
 		viaMobile: false,
@@ -202,6 +224,11 @@ export async function createNote(value: any, resolver?: Resolver, silent = false
  */
 export async function resolveNote(value: string | IObject, resolver?: Resolver): Promise<INote> {
 	const uri = typeof value == 'string' ? value : value.id;
+
+	// ブロックしてたら中断
+	// TODO: いちいちデータベースにアクセスするのはコスト高そうなのでどっかにキャッシュしておく
+	const instance = await Instance.findOne({ host: extractDbHost(uri) });
+	if (instance && instance.isBlocked) throw { statusCode: 451 };
 
 	//#region このサーバーに既に登録されていたらそれを返す
 	const exist = await fetchNote(uri);

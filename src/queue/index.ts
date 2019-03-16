@@ -9,6 +9,7 @@ import processDeliver from './processors/deliver';
 import processInbox from './processors/inbox';
 import processDb from './processors/db';
 import { queueLogger } from './logger';
+import { IDriveFile } from '../models/drive-file';
 
 function initializeQueue(name: string) {
 	return new Queue(name, config.redis != null ? {
@@ -16,8 +17,9 @@ function initializeQueue(name: string) {
 			port: config.redis.port,
 			host: config.redis.host,
 			password: config.redis.pass,
-			db: 1
-		}
+			db: config.redis.db || 0,
+		},
+		prefix: config.redis.prefix ? `${config.redis.prefix}:queue` : 'queue'
 	} : null);
 }
 
@@ -32,17 +34,17 @@ deliverQueue
 	.on('waiting', (jobId) => deliverLogger.debug(`waiting id=${jobId}`))
 	.on('active', (job) => deliverLogger.debug(`active id=${job.id} to=${job.data.to}`))
 	.on('completed', (job, result) => deliverLogger.debug(`completed(${result}) id=${job.id} to=${job.data.to}`))
-	.on('failed', (job, err) => deliverLogger.debug(`failed(${err}) id=${job.id} to=${job.data.to}`))
+	.on('failed', (job, err) => deliverLogger.warn(`failed(${err}) id=${job.id} to=${job.data.to}`))
 	.on('error', (error) => deliverLogger.error(`error ${error}`))
 	.on('stalled', (job) => deliverLogger.warn(`stalled id=${job.id} to=${job.data.to}`));
 
 inboxQueue
 	.on('waiting', (jobId) => inboxLogger.debug(`waiting id=${jobId}`))
-	.on('active', (job) => inboxLogger.debug(`active id=${job.id} to=${job.data.to}`))
-	.on('completed', (job, result) => inboxLogger.debug(`completed(${result}) id=${job.id} to=${job.data.to}`))
-	.on('failed', (job, err) => inboxLogger.debug(`failed(${err}) id=${job.id} to=${job.data.to}`))
+	.on('active', (job) => inboxLogger.debug(`active id=${job.id}`))
+	.on('completed', (job, result) => inboxLogger.debug(`completed(${result}) id=${job.id}`))
+	.on('failed', (job, err) => inboxLogger.warn(`failed(${err}) id=${job.id} activity=${job.data.activity ? job.data.activity.id : 'none'}`))
 	.on('error', (error) => inboxLogger.error(`error ${error}`))
-	.on('stalled', (job) => inboxLogger.warn(`stalled id=${job.id} to=${job.data.to}`));
+	.on('stalled', (job) => inboxLogger.warn(`stalled id=${job.id} activity=${job.data.activity ? job.data.activity.id : 'none'}`));
 
 export function deliver(user: ILocalUser, content: any, to: any) {
 	if (content == null) return null;
@@ -135,6 +137,35 @@ export function createExportBlockingJob(user: ILocalUser) {
 	});
 }
 
+export function createExportUserListsJob(user: ILocalUser) {
+	return dbQueue.add('exportUserLists', {
+		user: user
+	}, {
+		removeOnComplete: true,
+		removeOnFail: true
+	});
+}
+
+export function createImportFollowingJob(user: ILocalUser, fileId: IDriveFile['_id']) {
+	return dbQueue.add('importFollowing', {
+		user: user,
+		fileId: fileId
+	}, {
+		removeOnComplete: true,
+		removeOnFail: true
+	});
+}
+
+export function createImportUserListsJob(user: ILocalUser, fileId: IDriveFile['_id']) {
+	return dbQueue.add('importUserLists', {
+		user: user,
+		fileId: fileId
+	}, {
+		removeOnComplete: true,
+		removeOnFail: true
+	});
+}
+
 export default function() {
 	if (!program.onlyServer) {
 		deliverQueue.process(128, processDeliver);
@@ -147,10 +178,10 @@ export function destroy() {
 	deliverQueue.once('cleaned', (jobs, status) => {
 		deliverLogger.succ(`Cleaned ${jobs.length} ${status} jobs`);
 	});
-	deliverQueue.clean(0, 'wait');
+	deliverQueue.clean(0, 'delayed');
 
 	inboxQueue.once('cleaned', (jobs, status) => {
 		inboxLogger.succ(`Cleaned ${jobs.length} ${status} jobs`);
 	});
-	inboxQueue.clean(0, 'wait');
+	inboxQueue.clean(0, 'delayed');
 }

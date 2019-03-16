@@ -522,11 +522,13 @@ common/views/components/profile-editor.vue:
   email-verified: "L’adresse du courrier électronique a été vérifiée."
   email-not-verified: "Adresse de courriel n’est pas confirmée. Veuillez vérifier votre boite de réception."
   export: "Exporter"
+  import: "Importer"
   export-targets:
     all-notes: "Toutes les notes publiées"
     following-list: "Liste des abonnements"
     mute-list: "Liste des comptes mis en sourdine"
     blocking-list: "Liste des comptes bloqués"
+    user-lists: "Listes"
   export-requested: "Vous avez demandé une exportation. Cela peut prendre un certain temps. Une fois l'exportation terminée, le fichier résultant sera ajouté dans le Drive."
   enter-password: "Veuillez saisir votre mot de passe"
   danger-zone: "Zone de danger"
@@ -925,7 +927,6 @@ admin/views/dashboard.vue:
   this-instance: "Cette instance"
   federated: "Fédérées"
 admin/views/queue.vue:
-  operation: "Action(s)"
   remove-all-jobs: "Enlever toutes les tâches en attente"
 admin/views/abuse.vue:
   title: "Abus"
@@ -1207,8 +1208,6 @@ desktop/views/pages/selectdrive.vue:
 desktop/views/pages/search.vue:
   not-available: "La fonction de recherche est désactivée dans les paramètres de l’instance."
   not-found: "Aucune publication trouvée pour « {q} »."
-desktop/views/pages/share.vue:
-  share-with: "Partager avec {name}"
 desktop/views/pages/tag.vue:
   no-posts-found: "Aucune publication contenant « {q} » n’a été trouvée."
 desktop/views/pages/user-list.users.vue:

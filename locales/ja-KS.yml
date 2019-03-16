@@ -476,10 +476,12 @@ common/views/components/profile-editor.vue:
   email-verified: "このメールアドレスOKや！"
   email-not-verified: "メールアドレスが確認されとらん。メールボックスもっぺん見てくれへん？"
   export: "エクスポート"
+  import: "インポート"
   export-targets:
     following-list: "フォロー"
     mute-list: "ミュート"
     blocking-list: "ブロック"
+    user-lists: "リスト"
   enter-password: "パスワードを入れてや"
 common/views/components/user-list-editor.vue:
   users: "ユーザー"
@@ -858,8 +860,6 @@ admin/views/dashboard.vue:
   instances: "インスタンス"
   this-instance: "ワイのインスタンス"
   federated: "連合"
-admin/views/queue.vue:
-  operation: "操作"
 admin/views/abuse.vue:
   details: "もっと"
   remove-report: "削除"

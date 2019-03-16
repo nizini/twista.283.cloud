@@ -8,6 +8,8 @@ import Note, { pack as packNote, INote } from '../../../../models/note';
 import { createNote } from '../../../../remote/activitypub/models/note';
 import Resolver from '../../../../remote/activitypub/resolver';
 import { ApiError } from '../../error';
+import Instance from '../../../../models/instance';
+import { extractDbHost } from '../../../../misc/convert-host';
 
 export const meta = {
 	tags: ['federation'],
@@ -61,6 +63,10 @@ async function fetchAny(uri: string) {
 		if (packed !== null) return packed;
 	}
 
+	// ブロックしてたら中断
+	const instance = await Instance.findOne({ host: extractDbHost(uri) });
+	if (instance && instance.isBlocked) return null;
+
 	// URI(AP Object id)としてDB検索
 	{
 		const [user, note] = await Promise.all([
@@ -97,7 +103,7 @@ async function fetchAny(uri: string) {
 		};
 	}
 
-	if (['Note', 'Question'].includes(object.type)) {
+	if (['Note', 'Question', 'Article'].includes(object.type)) {
 		const note = await createNote(object.id);
 		return {
 			type: 'Note',

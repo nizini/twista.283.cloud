@@ -5,6 +5,8 @@ import { IAnnounce, INote } from '../../type';
 import { fetchNote, resolveNote } from '../../models/note';
 import { resolvePerson } from '../../models/person';
 import { apLogger } from '../../logger';
+import { extractDbHost } from '../../../../misc/convert-host';
+import Instance from '../../../../models/instance';
 
 const logger = apLogger;
 
@@ -23,13 +25,30 @@ export default async function(resolver: Resolver, actor: IRemoteUser, activity: 
 		throw new Error('invalid announce');
 	}
 
+	// アナウンス先をブロックしてたら中断
+	// TODO: いちいちデータベースにアクセスするのはコスト高そうなのでどっかにキャッシュしておく
+	const instance = await Instance.findOne({ host: extractDbHost(uri) });
+	if (instance && instance.isBlocked) return;
+
 	// 既に同じURIを持つものが登録されていないかチェック
 	const exist = await fetchNote(uri);
 	if (exist) {
 		return;
 	}
 
-	const renote = await resolveNote(note);
+	// Announce対象をresolve
+	let renote;
+	try {
+		renote = await resolveNote(note);
+	} catch (e) {
+		// 対象が4xxならスキップ
+		if (e.statusCode >= 400 && e.statusCode < 500) {
+			logger.warn(`Ignored announce target ${note.inReplyTo} - ${e.statusCode}`);
+			return;
+		}
+		logger.warn(`Error in announce target ${note.inReplyTo} - ${e.statusCode || e}`);
+		throw e;
+	}
 
 	logger.info(`Creating the (Re)Note: ${uri}`);
 

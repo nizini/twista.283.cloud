@@ -1,37 +1,92 @@
 <template>
 <div>
 	<ui-card>
-		<template #title>{{ $t('operation') }}</template>
-		<section>
-			<header>Deliver</header>
-			<ui-horizon-group inputs v-if="stats">
-				<ui-input :value="stats.deliver.waiting | number" type="text" readonly>
-					<span>Waiting</span>
+		<template #title><fa :icon="faChartBar"/> {{ $t('title') }}</template>
+		<section class="wptihjuy">
+			<header><fa :icon="faPaperPlane"/> Deliver</header>
+			<ui-info warn v-if="latestStats && latestStats.deliver.waiting > 0">The queue is jammed.</ui-info>
+			<ui-horizon-group inputs v-if="latestStats" class="fit-bottom">
+				<ui-input :value="latestStats.deliver.activeSincePrevTick | number" type="text" readonly>
+					<span>Process</span>
+					<template #prefix><fa :icon="fasPlayCircle"/></template>
+					<template #suffix>jobs/tick</template>
 				</ui-input>
-				<ui-input :value="stats.deliver.delayed | number" type="text" readonly>
-					<span>Delayed</span>
-				</ui-input>
-				<ui-input :value="stats.deliver.active | number" type="text" readonly>
+				<ui-input :value="latestStats.deliver.active | number" type="text" readonly>
 					<span>Active</span>
+					<template #prefix><fa :icon="farPlayCircle"/></template>
+					<template #suffix>jobs</template>
+				</ui-input>
+				<ui-input :value="latestStats.deliver.waiting | number" type="text" readonly>
+					<span>Waiting</span>
+					<template #prefix><fa :icon="faStopCircle"/></template>
+					<template #suffix>jobs</template>
+				</ui-input>
+				<ui-input :value="latestStats.deliver.delayed | number" type="text" readonly>
+					<span>Delayed</span>
+					<template #prefix><fa :icon="faStopwatch"/></template>
+					<template #suffix>jobs</template>
 				</ui-input>
 			</ui-horizon-group>
+			<div ref="deliverChart" class="chart"></div>
 		</section>
-		<section>
-			<header>Inbox</header>
-			<ui-horizon-group inputs v-if="stats">
-				<ui-input :value="stats.inbox.waiting | number" type="text" readonly>
-					<span>Waiting</span>
+		<section class="wptihjuy">
+			<header><fa :icon="faInbox"/> Inbox</header>
+			<ui-info warn v-if="latestStats && latestStats.inbox.waiting > 0">The queue is jammed.</ui-info>
+			<ui-horizon-group inputs v-if="latestStats" class="fit-bottom">
+				<ui-input :value="latestStats.inbox.activeSincePrevTick | number" type="text" readonly>
+					<span>Process</span>
+					<template #prefix><fa :icon="fasPlayCircle"/></template>
+					<template #suffix>jobs/tick</template>
 				</ui-input>
-				<ui-input :value="stats.inbox.delayed | number" type="text" readonly>
-					<span>Delayed</span>
-				</ui-input>
-				<ui-input :value="stats.inbox.active | number" type="text" readonly>
+				<ui-input :value="latestStats.inbox.active | number" type="text" readonly>
 					<span>Active</span>
+					<template #prefix><fa :icon="farPlayCircle"/></template>
+					<template #suffix>jobs</template>
+				</ui-input>
+				<ui-input :value="latestStats.inbox.waiting | number" type="text" readonly>
+					<span>Waiting</span>
+					<template #prefix><fa :icon="faStopCircle"/></template>
+					<template #suffix>jobs</template>
+				</ui-input>
+				<ui-input :value="latestStats.inbox.delayed | number" type="text" readonly>
+					<span>Delayed</span>
+					<template #prefix><fa :icon="faStopwatch"/></template>
+					<template #suffix>jobs</template>
 				</ui-input>
 			</ui-horizon-group>
+			<div ref="inboxChart" class="chart"></div>
 		</section>
 		<section>
 			<ui-button @click="removeAllJobs">{{ $t('remove-all-jobs') }}</ui-button>
+		</section>
+	</ui-card>
+
+	<ui-card>
+		<template #title><fa :icon="faTasks"/> {{ $t('jobs') }}</template>
+		<section class="fit-top">
+			<ui-horizon-group inputs>
+				<ui-select v-model="domain">
+					<template #label>{{ $t('queue') }}</template>
+					<option value="deliver">{{ $t('domains.deliver') }}</option>
+					<option value="inbox">{{ $t('domains.inbox') }}</option>
+				</ui-select>
+				<ui-select v-model="state">
+					<template #label>{{ $t('state') }}</template>
+					<option value="delayed">{{ $t('states.delayed') }}</option>
+				</ui-select>
+			</ui-horizon-group>
+			<sequential-entrance animation="entranceFromTop" delay="25">
+				<div class="xvvuvgsv" v-for="job in jobs">
+					<b>{{ job.id }}</b>
+					<template v-if="domain === 'deliver'">
+						<span>{{ job.data.to }}</span>
+					</template>
+					<template v-if="domain === 'inbox'">
+						<span>{{ job.activity.id }}</span>
+					</template>
+				</div>
+			</sequential-entrance>
+			<ui-info v-if="jobs.length == jobsLimit">{{ $t('result-is-truncated', { n: jobsLimit }) }}</ui-info>
 		</section>
 	</ui-card>
 </div>
@@ -40,29 +95,164 @@
 <script lang="ts">
 import Vue from 'vue';
 import i18n from '../../i18n';
+import ApexCharts from 'apexcharts';
+import * as tinycolor from 'tinycolor2';
+import { faTasks, faInbox, faStopwatch, faPlayCircle as fasPlayCircle } from '@fortawesome/free-solid-svg-icons';
+import { faPaperPlane, faStopCircle, faPlayCircle as farPlayCircle, faChartBar } from '@fortawesome/free-regular-svg-icons';
+
+const limit = 150;
 
 export default Vue.extend({
 	i18n: i18n('admin/views/queue.vue'),
 
 	data() {
 		return {
-			stats: null
+			stats: [],
+			deliverChart: null,
+			inboxChart: null,
+			jobs: [],
+			jobsLimit: 50,
+			domain: 'deliver',
+			state: 'delayed',
+			faTasks, faPaperPlane, faInbox, faStopwatch, faStopCircle, farPlayCircle, fasPlayCircle, faChartBar
 		};
 	},
 
-	created() {
-		const fetchStats = () => {
-			this.$root.api('admin/queue/stats', {}, true).then(stats => {
-				this.stats = stats;
-			});
-		};
+	computed: {
+		latestStats(): any {
+			return this.stats[this.stats.length - 1];
+		}
+	},
 
-		fetchStats();
+	watch: {
+		stats(stats) {
+			this.inboxChart.updateSeries([{
+				name: 'Process',
+				type: 'area',
+				data: stats.map((x, i) => ({ x: i, y: x.inbox.activeSincePrevTick }))
+			}, {
+				name: 'Active',
+				type: 'area',
+				data: stats.map((x, i) => ({ x: i, y: x.inbox.active }))
+			}, {
+				name: 'Waiting',
+				type: 'line',
+				data: stats.map((x, i) => ({ x: i, y: x.inbox.waiting }))
+			}, {
+				name: 'Delayed',
+				type: 'line',
+				data: stats.map((x, i) => ({ x: i, y: x.inbox.delayed }))
+			}]);
+			this.deliverChart.updateSeries([{
+				name: 'Process',
+				type: 'area',
+				data: stats.map((x, i) => ({ x: i, y: x.deliver.activeSincePrevTick }))
+			}, {
+				name: 'Active',
+				type: 'area',
+				data: stats.map((x, i) => ({ x: i, y: x.deliver.active }))
+			}, {
+				name: 'Waiting',
+				type: 'line',
+				data: stats.map((x, i) => ({ x: i, y: x.deliver.waiting }))
+			}, {
+				name: 'Delayed',
+				type: 'line',
+				data: stats.map((x, i) => ({ x: i, y: x.deliver.delayed }))
+			}]);
+		},
 
-		const clock = setInterval(fetchStats, 1000);
+		domain() {
+			this.jobs = [];
+			this.fetchJobs();
+		},
+
+		state() {
+			this.jobs = [];
+			this.fetchJobs();
+		},
+	},
+
+	mounted() {
+		this.fetchJobs();
+
+		const chartOpts = id => ({
+			chart: {
+				id,
+				group: 'queue',
+				type: 'area',
+				height: 200,
+				animations: {
+					dynamicAnimation: {
+						enabled: false
+					}
+				},
+				toolbar: {
+					show: false
+				},
+				zoom: {
+					enabled: false
+				}
+			},
+			dataLabels: {
+				enabled: false
+			},
+			grid: {
+				clipMarkers: false,
+				borderColor: 'rgba(0, 0, 0, 0.1)',
+				xaxis: {
+					lines: {
+						show: true,
+					}
+				},
+			},
+			stroke: {
+				curve: 'straight',
+				width: 2
+			},
+			tooltip: {
+				enabled: false
+			},
+			legend: {
+				labels: {
+					colors: tinycolor(getComputedStyle(document.documentElement).getPropertyValue('--text')).toRgbString()
+				},
+			},
+			series: [] as any,
+			colors: ['#00E396', '#00BCD4', '#FFB300', '#e53935'],
+			xaxis: {
+				type: 'numeric',
+				labels: {
+					show: false
+				},
+				tooltip: {
+					enabled: false
+				}
+			},
+			yaxis: {
+				show: false,
+				min: 0,
+			}
+		});
+
+		this.inboxChart = new ApexCharts(this.$refs.inboxChart, chartOpts('a'));
+		this.deliverChart = new ApexCharts(this.$refs.deliverChart, chartOpts('b'));
+
+		this.inboxChart.render();
+		this.deliverChart.render();
+
+		const connection = this.$root.stream.useSharedConnection('queueStats');
+		connection.on('stats', this.onStats);
+		connection.on('statsLog', this.onStatsLog);
+		connection.send('requestLog', {
+			id: Math.random().toString().substr(2, 8),
+			length: limit
+		});
 
 		this.$once('hook:beforeDestroy', () => {
-			clearInterval(clock);
+			connection.dispose();
+			this.inboxChart.destroy();
+			this.deliverChart.destroy();
 		});
 	},
 
@@ -83,6 +273,39 @@ export default Vue.extend({
 				});
 			});
 		},
+
+		onStats(stats) {
+			this.stats.push(stats);
+			if (this.stats.length > limit) this.stats.shift();
+		},
+
+		onStatsLog(statsLog) {
+			for (const stats of statsLog.reverse()) {
+				this.onStats(stats);
+			}
+		},
+
+		fetchJobs() {
+			this.$root.api('admin/queue/jobs', {
+				domain: this.domain,
+				state: this.state,
+				limit: this.jobsLimit
+			}).then(jobs => {
+				this.jobs = jobs;
+			});
+		},
 	}
 });
 </script>
+
+<style lang="stylus" scoped>
+.wptihjuy
+	> .chart
+		min-height 200px !important
+		margin 0 -8px
+
+.xvvuvgsv
+	> b
+		margin-right 16px
+
+</style>
