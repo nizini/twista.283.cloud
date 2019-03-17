@@ -1239,6 +1239,8 @@ admin/views/instance.vue:
   disable-local-timeline: "ローカルタイムラインを無効にする"
   disable-global-timeline: "グローバルタイムラインを無効にする"
   disabling-timelines-info: "これらのタイムラインを無効にしても、管理者およびモデレーターは引き続き利用できます。"
+  enable-emoji-reaction: "リアクションに絵文字を使えるようにする"
+  use-star-for-reaction-fallback: "不明なリアクションのフォールバックに star を使う"
   invite: "招待"
   save: "保存"
   saved: "保存しました"
@@ -1409,12 +1411,13 @@ admin/views/hashtags.vue:
   hided-tags: "Hidden Tags"
 
 admin/views/federation.vue:
-  federation: "連合"
+  instance: "インスタンス"
   host: "ホスト"
   notes: "投稿"
   users: "ユーザー"
   following: "フォロー中"
   followers: "フォロワー"
+  caught-at: "登録日時"
   status: "ステータス"
   latest-request-sent-at: "直近のリクエスト送信"
   latest-request-received-at: "直近のリクエスト受信"
@@ -1423,7 +1426,7 @@ admin/views/federation.vue:
   block: "ブロック"
   marked-as-closed: "閉鎖されているとマーク"
   lookup: "照会"
-  instances: "インスタンス"
+  instances: "連合"
   instance-not-registered: "そのインスタンスは登録されていません"
   sort: "ソート"
   sorts:
