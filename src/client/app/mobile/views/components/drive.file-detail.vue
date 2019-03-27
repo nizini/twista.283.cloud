@@ -1,11 +1,7 @@
 <template>
 <div class="pyvicwrksnfyhpfgkjwqknuururpaztw">
 	<div class="preview">
-		<img v-if="kind == 'image'" ref="img"
-			:src="file.url"
-			:alt="file.name"
-			:title="file.name"
-			:style="style">
+		<x-file-thumbnail class="preview" :file="file" fit="cover" :detail="true"/>
 		<template v-if="kind != 'image'"><fa icon="file"/></template>
 		<footer v-if="kind == 'image' && file.properties && file.properties.width && file.properties.height">
 			<span class="size">
@@ -38,7 +34,7 @@
 	<div class="menu">
 		<div>
 			<ui-input readonly :value="file.url">URL</ui-input>
-			<ui-button link :href="`${file.url}?download`" :download="file.name"><fa icon="download"/> {{ $t('download') }}</ui-button>
+			<ui-button link :href="dlUrl" :download="file.name"><fa icon="download"/> {{ $t('download') }}</ui-button>
 			<ui-button @click="rename"><fa icon="pencil-alt"/> {{ $t('rename') }}</ui-button>
 			<ui-button @click="move"><fa :icon="['far', 'folder-open']"/> {{ $t('move') }}</ui-button>
 			<ui-button @click="toggleSensitive" v-if="file.isSensitive"><fa :icon="['far', 'eye']"/> {{ $t('unmark-as-sensitive') }}</ui-button>
@@ -61,10 +57,16 @@
 import Vue from 'vue';
 import i18n from '../../../i18n';
 import { gcd } from '../../../../../prelude/math';
+import { appendQuery } from '../../../../../prelude/url';
+import XFileThumbnail from '../../../common/views/components/drive-file-thumbnail.vue';
 
 export default Vue.extend({
 	i18n: i18n('mobile/views/components/drive.file-detail.vue'),
 	props: ['file'],
+
+	components: {
+		XFileThumbnail
+	},
 
 	data() {
 		return {
@@ -86,6 +88,10 @@ export default Vue.extend({
 			return this.file.properties.avgColor && this.file.properties.avgColor.length == 3 ? {
 				'background-color': `rgb(${ this.file.properties.avgColor.join(',') })`
 			} : {};
+		},
+
+		dlUrl(): string {
+			return appendQuery(this.file.url, 'download');
 		}
 	},
 
@@ -142,12 +148,13 @@ export default Vue.extend({
 		padding 8px
 		background var(--bg)
 
-		> img
-			display block
+		> .preview
 			max-width 100%
 			max-height 300px
 			margin 0 auto
 			box-shadow 1px 1px 4px rgba(#000, 0.2)
+			overflow hidden
+			color var(--driveFileIcon)
 
 		> footer
 			padding 8px 8px 0 8px

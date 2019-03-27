@@ -10,26 +10,26 @@ export type Theme = {
 	props: { [key: string]: string };
 };
 
-export const lightTheme: Theme = require('../theme/light.json5');
-export const darkTheme: Theme = require('../theme/dark.json5');
-export const pinkTheme: Theme = require('../theme/pink.json5');
-export const blackTheme: Theme = require('../theme/black.json5');
-export const halloweenTheme: Theme = require('../theme/halloween.json5');
-export const cafeTheme: Theme = require('../theme/cafe.json5');
-export const japaneseSushiSetTheme: Theme = require('../theme/japanese-sushi-set.json5');
-export const gruvboxDarkTheme: Theme = require('../theme/gruvbox-dark.json5');
-export const monokaiTheme: Theme = require('../theme/monokai.json5');
-export const colorfulTheme: Theme = require('../theme/colorful.json5');
-export const rainyTheme: Theme = require('../theme/rainy.json5');
-export const mauveTheme: Theme = require('../theme/mauve.json5');
-export const grayTheme: Theme = require('../theme/gray.json5');
-export const tweetDeckTheme: Theme = require('../theme/tweet-deck.json5');
+export const lightTheme: Theme = require('../themes/light.json5');
+export const darkTheme: Theme = require('../themes/dark.json5');
+export const lavenderTheme: Theme = require('../themes/lavender.json5');
+export const futureTheme: Theme = require('../themes/future.json5');
+export const halloweenTheme: Theme = require('../themes/halloween.json5');
+export const cafeTheme: Theme = require('../themes/cafe.json5');
+export const japaneseSushiSetTheme: Theme = require('../themes/japanese-sushi-set.json5');
+export const gruvboxDarkTheme: Theme = require('../themes/gruvbox-dark.json5');
+export const monokaiTheme: Theme = require('../themes/monokai.json5');
+export const colorfulTheme: Theme = require('../themes/colorful.json5');
+export const rainyTheme: Theme = require('../themes/rainy.json5');
+export const mauveTheme: Theme = require('../themes/mauve.json5');
+export const grayTheme: Theme = require('../themes/gray.json5');
+export const tweetDeckTheme: Theme = require('../themes/tweet-deck.json5');
 
 export const builtinThemes = [
 	lightTheme,
 	darkTheme,
-	pinkTheme,
-	blackTheme,
+	lavenderTheme,
+	futureTheme,
 	halloweenTheme,
 	cafeTheme,
 	japaneseSushiSetTheme,
