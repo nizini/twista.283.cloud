@@ -145,7 +145,7 @@ export async function createPerson(uri: string, resolver?: Resolver): Promise<IU
 
 	const tags = extractHashtags(person.tag).map(tag => tag.toLowerCase());
 
-	const isBot = object.type == 'Service';
+	const is = validActor.reduce<Record<string, boolean>>((a, c) => (a[`is${c}`] = person.type == c, a), {});
 
 	// Create user
 	let user: IRemoteUser;
@@ -177,7 +177,8 @@ export async function createPerson(uri: string, resolver?: Resolver): Promise<IU
 			fields,
 			...services,
 			tags,
-			isBot,
+			...is,
+			isBot: is.isService,
 			isCat: (person as any).isCat === true
 		}) as IRemoteUser;
 	} catch (e) {
