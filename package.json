@@ -1,11 +1,11 @@
 {
 	"name": "misskey",
-	"author": "syuilo <i@syuilo.com>",
-	"version": "10.100.0",
+	"author": "K Miyano <miyano@miyacorata.net>",
+	"version": "10.100.0-pr.0",
 	"codename": "nighthike",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/syuilo/misskey.git"
+		"url": "https://github.com/ProgrammingLab/misskey.git"
 	},
 	"main": "./index.js",
 	"private": true,
