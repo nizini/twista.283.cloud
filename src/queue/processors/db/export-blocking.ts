@@ -32,10 +32,9 @@ export async function exportBlocking(job: Bull.Job, done: any): Promise<void> {
 	const stream = fs.createWriteStream(path, { flags: 'a' });
 
 	let exportedCount = 0;
-	let ended = false;
 	let cursor: any = null;
 
-	while (!ended) {
+	while (true) {
 		const blockings = await Blocking.find({
 			blockerId: user._id,
 			...(cursor ? { _id: { $gt: cursor } } : {})
@@ -47,7 +46,6 @@ export async function exportBlocking(job: Bull.Job, done: any): Promise<void> {
 		});
 
 		if (blockings.length === 0) {
-			ended = true;
 			job.progress(100);
 			break;
 		}
@@ -81,7 +79,7 @@ export async function exportBlocking(job: Bull.Job, done: any): Promise<void> {
 	logger.succ(`Exported to: ${path}`);
 
 	const fileName = 'blocking-' + dateFormat(new Date(), 'yyyy-mm-dd-HH-MM-ss') + '.csv';
-	const driveFile = await addFile(user, path, fileName);
+	const driveFile = await addFile(user, path, fileName, null, null, true);
 
 	logger.succ(`Exported to: ${driveFile._id}`);
 	cleanup();

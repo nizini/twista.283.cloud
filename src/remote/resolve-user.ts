@@ -9,7 +9,7 @@ import chalk from 'chalk';
 
 const logger = remoteLogger.createSubLogger('resolve-user');
 
-export default async (username: string, _host: string, option?: any, resync?: boolean): Promise<IUser> => {
+export default async (username: string, _host: string, option?: any, resync = false): Promise<IUser> => {
 	const usernameLower = username.toLowerCase();
 
 	if (_host == null) {
@@ -28,7 +28,7 @@ export default async (username: string, _host: string, option?: any, resync?: bo
 		return await User.findOne({ usernameLower, host: null });
 	}
 
-	const user = await User.findOne({ usernameLower, host }, option);
+	const user = await User.findOne({ usernameLower, host }, option) as IRemoteUser;
 
 	const acctLower = `${usernameLower}@${hostAscii}`;
 
@@ -39,14 +39,22 @@ export default async (username: string, _host: string, option?: any, resync?: bo
 		return await createPerson(self.href);
 	}
 
-	if (resync) {
+	// resyncオプション OR ユーザー情報が古い場合は、WebFilgerからやりなおして返す
+	if (resync || user.lastFetchedAt == null || Date.now() - user.lastFetchedAt.getTime() > 1000 * 60 * 60 * 24) {
+		// 繋がらないインスタンスに何回も試行するのを防ぐ, 後続の同様処理の連続試行を防ぐ ため 試行前にも更新する
+		await User.update({ _id: user._id }, {
+			$set: {
+				lastFetchedAt: new Date(),
+			},
+		});
+
 		logger.info(`try resync: ${acctLower}`);
 		const self = await resolveSelf(acctLower);
 
-		if ((user as IRemoteUser).uri !== self.href) {
+		if (user.uri !== self.href) {
 			// if uri mismatch, Fix (user@host <=> AP's Person id(IRemoteUser.uri)) mapping.
 			logger.info(`uri missmatch: ${acctLower}`);
-			logger.info(`recovery missmatch uri for (username=${username}, host=${host}) from ${(user as IRemoteUser).uri} to ${self.href}`);
+			logger.info(`recovery missmatch uri for (username=${username}, host=${host}) from ${user.uri} to ${self.href}`);
 
 			// validate uri
 			const uri = new URL(self.href);
@@ -79,8 +87,8 @@ export default async (username: string, _host: string, option?: any, resync?: bo
 async function resolveSelf(acctLower: string) {
 	logger.info(`WebFinger for ${chalk.yellow(acctLower)}`);
 	const finger = await webFinger(acctLower).catch(e => {
-		logger.error(`Failed to WebFinger for ${chalk.yellow(acctLower)}: ${e.message} (${e.status})`);
-		throw e;
+		logger.error(`Failed to WebFinger for ${chalk.yellow(acctLower)}: ${ e.statusCode || e.message }`);
+		throw new Error(`Failed to WebFinger for ${acctLower}: ${ e.statusCode || e.message }`);
 	});
 	const self = finger.links.find(link => link.rel && link.rel.toLowerCase() === 'self');
 	if (!self) {

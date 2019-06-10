@@ -514,8 +514,12 @@ common/views/components/user-menu.vue:
   mention: "メンション"
   mute: "ミュート"
   unmute: "ミュート解除"
+  mute-confirm: "このユーザーをミュートしますか？"
+  unmute-confirm: "このユーザーをミュート解除しますか？"
   block: "ブロック"
   unblock: "ブロック解除"
+  block-confirm: "このユーザーをブロックしますか？"
+  unblock-confirm: "このユーザーをブロック解除しますか？"
   push-to-list: "リストに追加"
   select-list: "リストを選択してください"
   report-abuse: "スパムを報告"
@@ -523,8 +527,12 @@ common/views/components/user-menu.vue:
   report-abuse-reported: "管理者に報告されました。ご協力ありがとうございました。"
   silence: "サイレンス"
   unsilence: "サイレンス解除"
+  silence-confirm: "このユーザーをサイレンスしますか？"
+  unsilence-confirm: "このユーザーをサイレンス解除しますか？"
   suspend: "凍結"
   unsuspend: "凍結解除"
+  suspend-confirm: "このユーザーを凍結しますか？"
+  unsuspend-confirm: "このユーザーを凍結解除しますか？"
 
 common/views/components/poll.vue:
   vote-to: "「{}」に投票する"
@@ -968,7 +976,6 @@ desktop/views/components/post-form.vue:
   posting: "投稿中"
   attach-media-from-local: "PCからメディアを添付"
   attach-media-from-drive: "ドライブからメディアを添付"
-  attach-cancel: "添付取り消し"
   insert-a-kao: "v('ω')v"
   create-poll: "アンケートを作成"
   text-remain: "残り{}文字"
@@ -1073,6 +1080,11 @@ common/views/components/password-settings.vue:
   not-match: "新しいパスワードが一致しません"
   changed: "パスワードを変更しました"
   failed: "パスワード変更に失敗しました"
+
+common/views/components/post-form-attaches.vue:
+  attach-cancel: "添付取り消し"
+  mark-as-sensitive: "閲覧注意に設定"
+  unmark-as-sensitive: "閲覧注意を解除"
 
 desktop/views/components/sub-note-content.vue:
   private: "この投稿は非公開です"
@@ -1327,7 +1339,9 @@ admin/views/users.vue:
   unsuspend-confirm: "凍結を解除しますか？"
   unsuspended: "凍結を解除しました"
   make-silence: "サイレンス"
+  silence-confirm: "サイレンスしますか？"
   unmake-silence: "サイレンスの解除"
+  unsilence-confirm: "サイレンスを解除しますか？"
   verify: "公式アカウントにする"
   verify-confirm: "公式アカウントにしますか？"
   verified: "公式アカウントにしました"

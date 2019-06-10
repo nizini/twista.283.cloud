@@ -4,13 +4,13 @@ import { URL } from 'url';
 import * as crypto from 'crypto';
 import { lookup, IRunOptions } from 'lookup-dns-cache';
 import * as promiseAny from 'promise-any';
-import { toUnicode } from 'punycode';
 
 import config from '../../config';
 import { ILocalUser } from '../../models/user';
 import { publishApLogStream } from '../../services/stream';
 import { apLogger } from './logger';
 import Instance from '../../models/instance';
+import { toDbHost } from '../../misc/convert-host';
 
 export const logger = apLogger.createSubLogger('deliver');
 
@@ -23,7 +23,7 @@ export default async (user: ILocalUser, url: string, object: any) => {
 
 	// ブロックしてたら中断
 	// TODO: いちいちデータベースにアクセスするのはコスト高そうなのでどっかにキャッシュしておく
-	const instance = await Instance.findOne({ host: toUnicode(host) });
+	const instance = await Instance.findOne({ host: toDbHost(host) });
 	if (instance && instance.isBlocked) return;
 
 	const data = JSON.stringify(object);
@@ -35,7 +35,7 @@ export default async (user: ILocalUser, url: string, object: any) => {
 	const addr = await resolveAddr(hostname);
 	if (!addr) return;
 
-	const _ = new Promise((resolve, reject) => {
+	await new  Promise((resolve, reject) => {
 		const req = request({
 			protocol,
 			hostname: addr,
@@ -82,8 +82,6 @@ export default async (user: ILocalUser, url: string, object: any) => {
 		req.end(data);
 	});
 
-	await _;
-
 	//#region Log
 	publishApLogStream({
 		direction: 'out',
@@ -98,11 +96,18 @@ export default async (user: ILocalUser, url: string, object: any) => {
  * Resolve host (with cached, asynchrony)
  */
 async function resolveAddr(domain: string) {
+	const af = config.outgoingAddressFamily || 'ipv4';
+	const useV4 = af == 'ipv4' || af == 'dual';
+	const useV6 = af == 'ipv6' || af == 'dual';
+
+	const promises = [];
+
+	if (!useV4 && !useV6) throw 'No usable address family available';
+	if (useV4) promises.push(resolveAddrInner(domain, { family: 4 }));
+	if (useV6) promises.push(resolveAddrInner(domain, { family: 6 }));
+
 	// v4/v6で先に取得できた方を採用する
-	return await promiseAny([
-		resolveAddrInner(domain, { family: 4 }),
-		resolveAddrInner(domain, { family: 6 })
-	]);
+	return await promiseAny(promises);
 }
 
 function resolveAddrInner(domain: string, options: IRunOptions = {}): Promise<string> {

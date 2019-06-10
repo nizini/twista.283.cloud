@@ -6,7 +6,7 @@ import config from '../../../config';
 import User, { validateUsername, isValidName, IUser, IRemoteUser, isRemoteUser } from '../../../models/user';
 import Resolver from '../resolver';
 import { resolveImage } from './image';
-import { isCollectionOrOrderedCollection, isCollection, IPerson } from '../type';
+import { isCollectionOrOrderedCollection, isCollection, IPerson, validActor } from '../type';
 import { IDriveFile } from '../../../models/drive-file';
 import Meta from '../../../models/meta';
 import { fromHtml } from '../../../mfm/fromHtml';
@@ -38,7 +38,7 @@ function validatePerson(x: any, uri: string) {
 		return new Error('invalid person: object is null');
 	}
 
-	if (x.type != 'Person' && x.type != 'Service') {
+	if (!validActor.includes(x.type)) {
 		return new Error(`invalid person: object is not a person or service '${x.type}'`);
 	}
 
@@ -293,13 +293,6 @@ export async function updatePerson(uri: string, resolver?: Resolver, hint?: obje
 		return;
 	}
 	//#endregion
-
-	// 繋がらないインスタンスに何回も試行するのを防ぐ, 後続の同様処理の連続試行を防ぐ ため 試行前にも更新する
-	await User.update({ _id: exist._id }, {
-		$set: {
-			lastFetchedAt: new Date(),
-		},
-	});
 
 	if (resolver == null) resolver = new Resolver();
 
