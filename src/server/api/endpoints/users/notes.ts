@@ -5,6 +5,7 @@ import define from '../../define';
 import Following from '../../../../models/following';
 import { ApiError } from '../../error';
 import { getUser } from '../../common/getters';
+import fetchMeta from '../../../../misc/fetch-meta';
 
 export const meta = {
 	desc: {
@@ -150,13 +151,13 @@ export default define(meta, async (ps, me) => {
 		throw e;
 	});
 
-	const isFollowing = me == null ? false : ((await Following.findOne({
+	const isFollowing = me && await Following.findOne({
 		followerId: me._id,
 		followeeId: user._id
-	})) != null);
+	});
 
 	//#region Construct query
-	const sort = { } as any;
+	const sort = {} as any;
 
 	const visibleQuery = me == null ? [{
 		visibility: { $in: ['public', 'home'] }
@@ -245,6 +246,12 @@ export default define(meta, async (ps, me) => {
 			};
 		}
 	}
+
+	const { protectLocalOnlyNotes } = me ? { protectLocalOnlyNotes: false } : await fetchMeta();
+
+	if (protectLocalOnlyNotes) {
+		query.localOnly = { $ne: true };
+	}
 	//#endregion
 
 	const notes = await Note.find(query, {
@@ -252,5 +259,7 @@ export default define(meta, async (ps, me) => {
 		sort: sort
 	});
 
-	return await packMany(notes, me);
+	return await packMany(notes, me, {
+		unauthenticated: protectLocalOnlyNotes
+	});
 });

@@ -19,14 +19,20 @@ export interface IMute {
 
 export const packMany = (
 	mutes: (string | mongo.ObjectID | IMute)[],
-	me?: string | mongo.ObjectID | IUser
+	me?: string | mongo.ObjectID | IUser,
+	options?: {
+		unauthenticated?: boolean;
+	}
 ) => {
-	return Promise.all(mutes.map(x => pack(x, me)));
+	return Promise.all(mutes.map(x => pack(x, me, options)));
 };
 
 export const pack = (
 	mute: any,
-	me?: any
+	me?: any,
+	options?: {
+		unauthenticated?: boolean;
+	}
 ) => new Promise<any>(async (resolve, reject) => {
 	let _mute: any;
 
@@ -49,7 +55,8 @@ export const pack = (
 
 	// Populate mutee
 	_mute.mutee = await packUser(_mute.muteeId, me, {
-		detail: true
+		detail: true,
+		unauthenticated: options && options.unauthenticated
 	});
 
 	resolve(_mute);

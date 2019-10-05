@@ -114,7 +114,7 @@ export type IChoice = {
 	votes: number;
 };
 
-export const hideNote = async (packedNote: any, meId: mongo.ObjectID) => {
+export const hideNote = async (packedNote: any, meId: mongo.ObjectID, unauthenticated = false) => {
 	let hide = false;
 
 	// visibility が private かつ投稿者のIDが自分のIDではなかったら非表示(後方互換性のため)
@@ -167,6 +167,10 @@ export const hideNote = async (packedNote: any, meId: mongo.ObjectID) => {
 		}
 	}
 
+	if (unauthenticated && packedNote.localOnly) {
+		hide = true;
+	}
+
 	if (hide) {
 		packedNote.fileIds = [];
 		packedNote.files = [];
@@ -185,6 +189,7 @@ export const packMany = (
 	options?: {
 		detail?: boolean;
 		skipHide?: boolean;
+		unauthenticated?: boolean;
 	}
 ) => {
 	return Promise.all(notes.map(n => pack(n, me, options)));
@@ -204,6 +209,7 @@ export const pack = async (
 	options?: {
 		detail?: boolean;
 		skipHide?: boolean;
+		unauthenticated?: boolean;
 	}
 ) => {
 	const opts = Object.assign({
@@ -411,7 +417,7 @@ export const pack = async (
 	}
 
 	if (!opts.skipHide) {
-		await hideNote(_note, meId);
+		await hideNote(_note, meId, options && options.unauthenticated);
 	}
 
 	return _note;

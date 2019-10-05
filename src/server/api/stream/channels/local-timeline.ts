@@ -7,7 +7,7 @@ import fetchMeta from '../../../../misc/fetch-meta';
 
 export default class extends Channel {
 	public readonly chName = 'localTimeline';
-	public static shouldShare = true;
+	public static shouldShare = false;
 	public static requireCredential = false;
 
 	private mutedUserIds: string[] = [];
@@ -28,16 +28,20 @@ export default class extends Channel {
 
 	@autobind
 	private async onNote(note: any) {
+		const { protectLocalOnlyNotes } = this.user ? { protectLocalOnlyNotes: false } : await fetchMeta();
+
 		// リプライなら再pack
 		if (note.replyId != null) {
 			note.reply = await pack(note.replyId, this.user, {
-				detail: true
+				detail: true,
+				unauthenticated: protectLocalOnlyNotes
 			});
 		}
 		// Renoteなら再pack
 		if (note.renoteId != null) {
 			note.renote = await pack(note.renoteId, this.user, {
-				detail: true
+				detail: true,
+				unauthenticated: protectLocalOnlyNotes
 			});
 		}
 

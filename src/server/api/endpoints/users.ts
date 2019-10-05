@@ -3,6 +3,7 @@ import User, { pack } from '../../../models/user';
 import define from '../define';
 import { fallback } from '../../../prelude/symbol';
 import { getHideUserIds } from '../common/get-hide-users';
+import fetchMeta from '../../../misc/fetch-meta';
 
 const nonnull = { $ne: null as any };
 
@@ -98,8 +99,11 @@ const sort: any = { // < https://github.com/Microsoft/TypeScript/issues/1863
 export default define(meta, async (ps, me) => {
 	const hideUserIds = await getHideUserIds(me);
 
-	const users = await User
-		.find({
+	const [{ protectLocalOnlyNotes }, users] = await Promise.all([
+		me ?
+			Promise.resolve({ protectLocalOnlyNotes: false }) :
+			fetchMeta() as Promise<{ protectLocalOnlyNotes: boolean }>,
+		User.find({
 			$and: [
 				state[ps.state] || state[fallback],
 				origin[ps.origin] || origin[fallback]
@@ -109,7 +113,10 @@ export default define(meta, async (ps, me) => {
 			limit: ps.limit,
 			sort: sort[ps.sort] || sort[fallback],
 			skip: ps.offset
-		});
+		})]);
 
-	return await Promise.all(users.map(user => pack(user, me, { detail: true })));
+	return await Promise.all(users.map(user => pack(user, me, {
+		detail: true,
+		unauthenticated: protectLocalOnlyNotes
+	})));
 });

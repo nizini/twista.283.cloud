@@ -1,6 +1,7 @@
 import $ from 'cafy';
 import User, { pack } from '../../../../models/user';
 import define from '../../define';
+import fetchMeta from '../../../../misc/fetch-meta';
 
 export const meta = {
 	requireCredential: false,
@@ -82,11 +83,18 @@ export default define(meta, async (ps, me) => {
 		{}
 	);
 
-	const users = await User
-		.find(q, {
+	const [{ protectLocalOnlyNotes }, users] = await Promise.all([
+		me ?
+			Promise.resolve({ protectLocalOnlyNotes: false }) :
+			fetchMeta() as Promise<{ protectLocalOnlyNotes: boolean }>,
+		User.find(q, {
 			limit: ps.limit,
 			sort: sort[ps.sort],
-		});
+		})
+	]);
 
-	return await Promise.all(users.map(user => pack(user, me, { detail: true })));
+	return await Promise.all(users.map(user => pack(user, me, {
+		detail: true,
+		unauthenticated: protectLocalOnlyNotes
+	})));
 });

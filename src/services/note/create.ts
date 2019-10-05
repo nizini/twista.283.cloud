@@ -281,7 +281,7 @@ export default async (user: IUser, data: Option, silent = false) => new Promise<
 	}
 
 	// Pack the note
-	const noteObj = await pack(note);
+	const noteObj = await pack(note); // Memo: details ありに変更する場合、stream 周りの unauthenticated も整備すること。
 
 	if (isFirstNote) {
 		noteObj.isFirstNote = true;

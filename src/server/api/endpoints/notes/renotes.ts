@@ -4,6 +4,7 @@ import Note, { packMany } from '../../../../models/note';
 import define from '../../define';
 import { getNote } from '../../common/getters';
 import { ApiError } from '../../error';
+import fetchMeta from '../../../../misc/fetch-meta';
 
 export const meta = {
 	desc: {
@@ -82,10 +83,18 @@ export default define(meta, async (ps, user) => {
 		};
 	}
 
+	const { protectLocalOnlyNotes } = user ? { protectLocalOnlyNotes: false } : await fetchMeta();
+
+	if (protectLocalOnlyNotes) {
+		query.localOnly = { $ne: true };
+	}
+
 	const renotes = await Note.find(query, {
 		limit: ps.limit,
 		sort: sort
 	});
 
-	return await packMany(renotes, user);
+	return await packMany(renotes, user, {
+		unauthenticated: protectLocalOnlyNotes
+	});
 });
