@@ -4,6 +4,7 @@ import Note, { packMany } from '../../../../models/note';
 import define from '../../define';
 import { getFriends } from '../../common/get-friends';
 import { getHideUserIds } from '../../common/get-hide-users';
+import fetchMeta from '../../../../misc/fetch-meta';
 
 export const meta = {
 	desc: {
@@ -50,7 +51,8 @@ export const meta = {
 };
 
 export default define(meta, async (ps, user) => {
-	const [followings, hideUserIds] = await Promise.all([
+	const [{ protectLocalOnlyNotes }, followings, hideUserIds] = await Promise.all([
+		user ? Promise.resolve({ protectLocalOnlyNotes: false }) : fetchMeta() as Promise<{ protectLocalOnlyNotes: boolean }>,
 		// フォローを取得
 		// Fetch following
 		user ? getFriends(user._id) : [],
@@ -123,10 +125,16 @@ export default define(meta, async (ps, user) => {
 		};
 	}
 
+	if (protectLocalOnlyNotes) {
+		q.localOnly = { $ne: true };
+	}
+
 	const notes = await Note.find(q, {
 		limit: ps.limit,
 		sort: sort
 	});
 
-	return await packMany(notes, user);
+	return await packMany(notes, user, {
+		unauthenticated: protectLocalOnlyNotes
+	});
 });

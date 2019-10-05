@@ -2,6 +2,7 @@ import $ from 'cafy';
 import ID, { transform } from '../../../misc/cafy-id';
 import Note, { packMany } from '../../../models/note';
 import define from '../define';
+import fetchMeta from '../../../misc/fetch-meta';
 
 export const meta = {
 	desc: {
@@ -79,14 +80,17 @@ export const meta = {
 };
 
 export default define(meta, async (ps) => {
+	const { protectLocalOnlyNotes } = await fetchMeta();
+
 	const sort = {
 		_id: -1
 	};
-	const query = {
+
+	const query: Record<string, unknown> = {
 		deletedAt: null,
 		visibility: 'public',
-		localOnly: { $ne: true },
-	} as any;
+	};
+
 	if (ps.sinceId) {
 		sort._id = 1;
 		query._id = {
@@ -123,10 +127,16 @@ export default define(meta, async (ps) => {
 	//	query.isBot = bot;
 	//}
 
+	if (protectLocalOnlyNotes) {
+		query.localOnly = { $ne: true };
+	}
+
 	const notes = await Note.find(query, {
 		limit: ps.limit,
 		sort: sort
 	});
 
-	return await packMany(notes);
+	return await packMany(notes, null, {
+		unauthenticated: protectLocalOnlyNotes
+	});
 });

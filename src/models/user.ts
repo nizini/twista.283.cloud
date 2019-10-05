@@ -258,6 +258,7 @@ export const pack = (
 		detail?: boolean,
 		includeSecrets?: boolean,
 		includeHasUnreadNotes?: boolean
+		unauthenticated?: boolean;
 	}
 ) => new Promise<any>(async (resolve, reject) => {
 	const opts = Object.assign({

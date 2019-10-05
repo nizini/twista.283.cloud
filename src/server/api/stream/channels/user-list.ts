@@ -1,6 +1,7 @@
 import autobind from 'autobind-decorator';
 import Channel from '../channel';
 import { pack } from '../../../../models/note';
+import fetchMeta from '../../../../misc/fetch-meta';
 
 export default class extends Channel {
 	public readonly chName = 'userList';
@@ -13,9 +14,12 @@ export default class extends Channel {
 
 		// Subscribe stream
 		this.subscriber.on(`userListStream:${listId}`, async data => {
+			const { protectLocalOnlyNotes } = this.user ? { protectLocalOnlyNotes: false } : await fetchMeta();
+
 			// 再パック
 			if (data.type == 'note') data.body = await pack(data.body.id, this.user, {
-				detail: true
+				detail: true,
+				unauthenticated: protectLocalOnlyNotes
 			});
 			this.send(data);
 		});

@@ -3,6 +3,7 @@ import Note from '../../../../models/note';
 import { packMany } from '../../../../models/note';
 import define from '../../define';
 import { getHideUserIds } from '../../common/get-hide-users';
+import fetchMeta from '../../../../misc/fetch-meta';
 
 export const meta = {
 	desc: {
@@ -35,7 +36,7 @@ export const meta = {
 export default define(meta, async (ps, user) => {
 	const day = 1000 * 60 * 60 * 24 * 3; // 3日前まで
 
-	const hideUserIds = await getHideUserIds(user);
+	const [hideUserIds, { protectLocalOnlyNotes }] = await Promise.all([getHideUserIds(user), fetchMeta()]);
 
 	const notes = await Note.find({
 		createdAt: {
@@ -44,6 +45,7 @@ export default define(meta, async (ps, user) => {
 		deletedAt: null,
 		visibility: 'public',
 		'_user.host': null,
+		...(protectLocalOnlyNotes && !user ? { $ne: true } : {}),
 		...(hideUserIds && hideUserIds.length > 0 ? { userId: { $nin: hideUserIds } } : {})
 	}, {
 		limit: ps.limit,
@@ -55,5 +57,7 @@ export default define(meta, async (ps, user) => {
 		}
 	});
 
-	return await packMany(notes, user);
+	return await packMany(notes, user, {
+		unauthenticated: protectLocalOnlyNotes && !user
+	});
 });

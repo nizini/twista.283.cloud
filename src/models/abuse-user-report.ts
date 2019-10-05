@@ -19,13 +19,19 @@ export interface IAbuseUserReport {
 }
 
 export const packMany = (
-	reports: (string | mongo.ObjectID | IAbuseUserReport)[]
+	reports: (string | mongo.ObjectID | IAbuseUserReport)[],
+	options?: {
+		unauthenticated?: boolean;
+	}
 ) => {
-	return Promise.all(reports.map(x => pack(x)));
+	return Promise.all(reports.map(x => pack(x, options)));
 };
 
 export const pack = (
-	report: any
+	report: any,
+	options?: {
+		unauthenticated?: boolean;
+	}
 ) => new Promise<any>(async (resolve, reject) => {
 	let _report: any;
 
@@ -45,8 +51,14 @@ export const pack = (
 	_report.id = _report._id;
 	delete _report._id;
 
-	_report.reporter = await packUser(_report.reporterId, null, { detail: true });
-	_report.user = await packUser(_report.userId, null, { detail: true });
+	_report.reporter = await packUser(_report.reporterId, null, {
+		detail: true,
+		unauthenticated: options && options.unauthenticated
+	});
+	_report.user = await packUser(_report.userId, null, {
+		detail: true,
+		unauthenticated: options && options.unauthenticated
+	});
 
 	resolve(_report);
 });

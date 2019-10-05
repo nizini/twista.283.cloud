@@ -5,6 +5,7 @@ import { getFriendIds } from '../../common/get-friends';
 import { packMany } from '../../../../models/note';
 import define from '../../define';
 import { getHideUserIds } from '../../common/get-hide-users';
+import fetchMeta from '../../../../misc/fetch-meta';
 
 export const meta = {
 	desc: {
@@ -326,6 +327,12 @@ export default define(meta, async (ps, me) => {
 		delete q.$and;
 	}
 
+	const { protectLocalOnlyNotes } = me ? { protectLocalOnlyNotes: false } : await fetchMeta();
+
+	if (protectLocalOnlyNotes) {
+		q.localOnly = { $ne: true };
+	}
+
 	// Search notes
 	const notes = await Note.find(q, {
 		sort: {
@@ -335,5 +342,7 @@ export default define(meta, async (ps, me) => {
 		skip: ps.offset
 	});
 
-	return await packMany(notes, me);
+	return await packMany(notes, me, {
+		unauthenticated: protectLocalOnlyNotes
+	});
 });

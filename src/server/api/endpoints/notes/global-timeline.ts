@@ -134,6 +134,10 @@ export default define(meta, async (ps, user) => {
 			$lt: new Date(ps.untilDate)
 		};
 	}
+
+	if (m.protectLocalOnlyNotes && !user) {
+		query.localOnly = { $ne: true };
+	}
 	//#endregion
 
 	const timeline = await Note.find(query, {
@@ -141,5 +145,7 @@ export default define(meta, async (ps, user) => {
 		sort: sort
 	});
 
-	return await packMany(timeline, user);
+	return await packMany(timeline, user, {
+		unauthenticated: m.protectLocalOnlyNotes && !user
+	});
 });

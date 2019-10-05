@@ -5,6 +5,7 @@ import resolveRemoteUser from '../../../../remote/resolve-user';
 import define from '../../define';
 import { apiLogger } from '../../logger';
 import { ApiError } from '../../error';
+import fetchMeta from '../../../../misc/fetch-meta';
 
 const cursorOption = { fields: { data: false } };
 
@@ -67,6 +68,8 @@ export const meta = {
 export default define(meta, async (ps, me) => {
 	let user;
 
+	const { protectLocalOnlyNotes } = me ? { protectLocalOnlyNotes: false } : await fetchMeta();
+
 	if (ps.userIds) {
 		const users = await User.find({
 			_id: {
@@ -75,7 +78,8 @@ export default define(meta, async (ps, me) => {
 		});
 
 		return await Promise.all(users.map(u => pack(u, me, {
-			detail: true
+			detail: true,
+			unauthenticated: protectLocalOnlyNotes
 		})));
 	} else {
 		// Lookup user
@@ -97,7 +101,8 @@ export default define(meta, async (ps, me) => {
 		}
 
 		return await pack(user, me, {
-			detail: true
+			detail: true,
+			unauthenticated: protectLocalOnlyNotes
 		});
 	}
 });

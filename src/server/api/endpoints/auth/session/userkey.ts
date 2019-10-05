@@ -5,6 +5,7 @@ import AccessToken from '../../../../../models/access-token';
 import { pack } from '../../../../../models/user';
 import define from '../../../define';
 import { ApiError } from '../../../error';
+import fetchMeta from '../../../../../misc/fetch-meta';
 
 export const meta = {
 	tags: ['auth'],
@@ -67,9 +68,9 @@ export const meta = {
 
 export default define(meta, async (ps) => {
 	// Lookup app
-	const app = await App.findOne({
+	const [{ protectLocalOnlyNotes }, app] = await Promise.all([fetchMeta(), App.findOne({
 		secret: ps.appSecret
-	});
+	})]);
 
 	if (app == null) {
 		throw new ApiError(meta.errors.noSuchApp);
@@ -110,7 +111,8 @@ export default define(meta, async (ps) => {
 	return {
 		accessToken: accessToken.token,
 		user: await pack(session.userId, null, {
-			detail: true
+			detail: true,
+			unauthenticated: protectLocalOnlyNotes
 		})
 	};
 });

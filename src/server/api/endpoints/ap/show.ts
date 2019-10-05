@@ -11,6 +11,7 @@ import { ApiError } from '../../error';
 import Instance from '../../../../models/instance';
 import { extractDbHost } from '../../../../misc/convert-host';
 import { validActor } from '../../../../remote/activitypub/type';
+import fetchMeta from '../../../../misc/fetch-meta';
 
 export const meta = {
 	tags: ['federation'],
@@ -40,7 +41,7 @@ export const meta = {
 };
 
 export default define(meta, async (ps) => {
-	const object = await fetchAny(ps.uri);
+	const object = await fetchAny(ps.uri, (await fetchMeta()).protectLocalOnlyNotes);
 	if (object) {
 		return object;
 	} else {
@@ -51,7 +52,7 @@ export default define(meta, async (ps) => {
 /***
  * URIからUserかNoteを解決する
  */
-async function fetchAny(uri: string) {
+async function fetchAny(uri: string, unauthenticated = false) {
 	// URIがこのサーバーを指しているなら、ローカルユーザーIDとしてDBからフェッチ
 	if (uri.startsWith(config.url + '/')) {
 		const id = new mongo.ObjectID(uri.split('/').pop());
@@ -60,7 +61,7 @@ async function fetchAny(uri: string) {
 			Note.findOne({ _id: id })
 		]);
 
-		const packed = await mergePack(user, note);
+		const packed = await mergePack(user, note, unauthenticated);
 		if (packed !== null) return packed;
 	}
 
@@ -75,7 +76,7 @@ async function fetchAny(uri: string) {
 			Note.findOne({ uri: uri })
 		]);
 
-		const packed = await mergePack(user, note);
+		const packed = await mergePack(user, note, unauthenticated);
 		if (packed !== null) return packed;
 	}
 
@@ -93,7 +94,7 @@ async function fetchAny(uri: string) {
 				Note.findOne({ _id: id })
 			]);
 
-			const packed = await mergePack(user, note);
+			const packed = await mergePack(user, note, unauthenticated);
 			if (packed !== null) return packed;
 		}
 
@@ -102,7 +103,7 @@ async function fetchAny(uri: string) {
 			Note.findOne({ uri: object.id })
 		]);
 
-		const packed = await mergePack(user, note);
+		const packed = await mergePack(user, note, unauthenticated);
 		if (packed !== null) return packed;
 	}
 
@@ -111,7 +112,7 @@ async function fetchAny(uri: string) {
 		const user = await createPerson(object.id);
 		return {
 			type: 'User',
-			object: await packUser(user, null, { detail: true })
+			object: await packUser(user, null, { detail: true, unauthenticated })
 		};
 	}
 
@@ -119,25 +120,25 @@ async function fetchAny(uri: string) {
 		const note = await createNote(object.id, null, true);
 		return {
 			type: 'Note',
-			object: await packNote(note, null, { detail: true })
+			object: await packNote(note, null, { detail: true, unauthenticated })
 		};
 	}
 
 	return null;
 }
 
-async function mergePack(user: IUser, note: INote) {
+async function mergePack(user: IUser, note: INote, unauthenticated: boolean) {
 	if (user !== null) {
 		return {
 			type: 'User',
-			object: await packUser(user, null, { detail: true })
+			object: await packUser(user, null, { detail: true, unauthenticated })
 		};
 	}
 
 	if (note !== null) {
 		return {
 			type: 'Note',
-			object: await packNote(note, null, { detail: true })
+			object: await packNote(note, null, { detail: true, unauthenticated })
 		};
 	}
 

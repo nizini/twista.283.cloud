@@ -1245,6 +1245,7 @@ admin/views/instance.vue:
   disable-local-timeline: "ローカルタイムラインを無効にする"
   disable-global-timeline: "グローバルタイムラインを無効にする"
   disabling-timelines-info: "これらのタイムラインを無効にしても、管理者およびモデレーターは引き続き利用できます。"
+  protect-local-only-notes: "公開範囲がローカルのみの投稿をActivityPub経由以外からも保護する"
   enable-emoji-reaction: "リアクションに絵文字を使えるようにする"
   use-star-for-reaction-fallback: "不明なリアクションのフォールバックに star を使う"
   invite: "招待"
