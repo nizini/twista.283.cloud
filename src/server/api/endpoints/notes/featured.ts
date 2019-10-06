@@ -45,7 +45,7 @@ export default define(meta, async (ps, user) => {
 		deletedAt: null,
 		visibility: 'public',
 		'_user.host': null,
-		...(protectLocalOnlyNotes && !user ? { $ne: true } : {}),
+		...(protectLocalOnlyNotes && !user ? { localOnly: { $ne: true } } : {}),
 		...(hideUserIds && hideUserIds.length > 0 ? { userId: { $nin: hideUserIds } } : {})
 	}, {
 		limit: ps.limit,
