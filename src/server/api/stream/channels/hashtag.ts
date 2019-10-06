@@ -37,6 +37,8 @@ export default class extends Channel {
 			// 流れてきたNoteがミュートしているユーザーが関わるものだったら無視する
 			if (shouldMuteThisNote(note, mutedUserIds)) return;
 
+			if (protectLocalOnlyNotes && note.localOnly) return;
+
 			this.send('note', note);
 		});
 	}
