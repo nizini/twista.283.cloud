@@ -17,10 +17,15 @@ export default class extends Channel {
 			const { protectLocalOnlyNotes } = this.user ? { protectLocalOnlyNotes: false } : await fetchMeta();
 
 			// 再パック
-			if (data.type == 'note') data.body = await pack(data.body.id, this.user, {
-				detail: true,
-				unauthenticated: protectLocalOnlyNotes
-			});
+			if (data.type == 'note') {
+				data.body = await pack(data.body.id, this.user, {
+					detail: true,
+					unauthenticated: protectLocalOnlyNotes
+				});
+
+				if (protectLocalOnlyNotes && data.body.localOnly) return;
+			}
+
 			this.send(data);
 		});
 	}
