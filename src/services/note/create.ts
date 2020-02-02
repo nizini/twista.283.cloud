@@ -35,6 +35,7 @@ import extractMentions from '../../misc/extract-mentions';
 import extractEmojis from '../../misc/extract-emojis';
 import extractHashtags from '../../misc/extract-hashtags';
 import { genId } from '../../misc/gen-id';
+import fetchMeta from '../../misc/fetch-meta';
 
 type NotificationType = 'reply' | 'renote' | 'quote' | 'mention';
 
@@ -113,6 +114,7 @@ type Option = {
 };
 
 export default async (user: IUser, data: Option, silent = false) => new Promise<INote>(async (res, rej) => {
+	const meta = await fetchMeta();
 	const isFirstNote = user.notesCount === 0;
 
 	if (data.createdAt == null) data.createdAt = new Date();
@@ -238,7 +240,7 @@ export default async (user: IUser, data: Option, silent = false) => new Promise<
 	}
 
 	// ハッシュタグ更新
-	if (data.visibility === 'public' || data.visibility === 'home') {
+	if ((data.visibility === 'public' || data.visibility === 'home') && !(meta.protectLocalOnlyNotes && data.localOnly)) {
 		for (const tag of tags) updateHashtag(user, tag);
 	}
 
