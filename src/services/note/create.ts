@@ -114,7 +114,6 @@ type Option = {
 };
 
 export default async (user: IUser, data: Option, silent = false) => new Promise<INote>(async (res, rej) => {
-	const meta = await fetchMeta();
 	const isFirstNote = user.notesCount === 0;
 
 	if (data.createdAt == null) data.createdAt = new Date();
@@ -240,8 +239,20 @@ export default async (user: IUser, data: Option, silent = false) => new Promise<
 	}
 
 	// ハッシュタグ更新
-	if ((data.visibility === 'public' || data.visibility === 'home') && !(meta.protectLocalOnlyNotes && data.localOnly)) {
-		for (const tag of tags) updateHashtag(user, tag);
+	if (data.visibility === 'public' || data.visibility === 'home') {
+		if (data.localOnly) {
+			fetchMeta().then(({ protectLocalOnlyNotes }) => {
+				if (!protectLocalOnlyNotes) {
+					for (const tag of tags) {
+						updateHashtag(user, tag);
+					}
+				}
+			});
+		} else {
+			for (const tag of tags) {
+				updateHashtag(user, tag);
+			}
+		}
 	}
 
 	// ファイルが添付されていた場合ドライブのファイルの「このファイルが添付された投稿一覧」プロパティにこの投稿を追加
