@@ -2,6 +2,7 @@ import $ from 'cafy';
 import * as escapeRegexp from 'escape-regexp';
 import User, { pack, validateUsername, IUser } from '../../../../models/user';
 import define from '../../define';
+import fetchMeta from '../../../../misc/fetch-meta';
 
 export const meta = {
 	desc: {
@@ -62,6 +63,8 @@ export const meta = {
 };
 
 export default define(meta, async (ps, me) => {
+	const { protectLocalOnlyNotes } = !ps.detail || me ? { protectLocalOnlyNotes: false } : await fetchMeta();
+
 	const isUsername = validateUsername(ps.query.replace('@', ''), !ps.localOnly);
 
 	let users: IUser[] = [];
@@ -91,5 +94,8 @@ export default define(meta, async (ps, me) => {
 		}
 	}
 
-	return await Promise.all(users.map(user => pack(user, me, { detail: ps.detail })));
+	return await Promise.all(users.map(user => pack(user, me, {
+		detail: ps.detail,
+		unauthenticated: protectLocalOnlyNotes
+	})));
 });

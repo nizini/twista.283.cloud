@@ -6,6 +6,7 @@ import { pack } from '../../../../models/user';
 import { getFriendIds } from '../../common/get-friends';
 import define from '../../define';
 import { ApiError } from '../../error';
+import fetchMeta from '../../../../misc/fetch-meta';
 
 export const meta = {
 	desc: {
@@ -83,7 +84,7 @@ export default define(meta, async (ps, me) => {
 		? { _id: ps.userId }
 		: { usernameLower: ps.username.toLowerCase(), host: ps.host };
 
-	const user = await User.findOne(q);
+	const [{ protectLocalOnlyNotes }, user] = await Promise.all([me ? Promise.resolve({ protectLocalOnlyNotes: false }) : fetchMeta() as Promise<{ protectLocalOnlyNotes: boolean }>, User.findOne(q)]);
 
 	if (user === null) {
 		throw new ApiError(meta.errors.noSuchUser);
@@ -123,7 +124,10 @@ export default define(meta, async (ps, me) => {
 		following.pop();
 	}
 
-	const users = await Promise.all(following.map(f => pack(f.followeeId, me, { detail: true })));
+	const users = await Promise.all(following.map(f => pack(f.followeeId, me, {
+		detail: true,
+		unauthenticated: protectLocalOnlyNotes
+	})));
 
 	return {
 		users: users,

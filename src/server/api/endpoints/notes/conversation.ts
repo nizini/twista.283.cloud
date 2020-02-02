@@ -4,6 +4,7 @@ import Note, { packMany, INote } from '../../../../models/note';
 import define from '../../define';
 import { ApiError } from '../../error';
 import { getNote } from '../../common/getters';
+import fetchMeta from '../../../../misc/fetch-meta';
 
 export const meta = {
 	desc: {
@@ -53,19 +54,30 @@ export const meta = {
 };
 
 export default define(meta, async (ps, user) => {
-	const note = await getNote(ps.noteId).catch(e => {
-		if (e.id === '9725d0ce-ba28-4dde-95a7-2cbb2c15de24') throw new ApiError(meta.errors.noSuchNote);
-		throw e;
-	});
+	const [{ protectLocalOnlyNotes }, note] = await Promise.all([
+		user ?
+			Promise.resolve({ protectLocalOnlyNotes: false }) :
+			fetchMeta() as Promise<{ protectLocalOnlyNotes: boolean }>,
+		getNote(ps.noteId).catch(e => {
+			if (e.id === '9725d0ce-ba28-4dde-95a7-2cbb2c15de24') throw new ApiError(meta.errors.noSuchNote);
+			throw e;
+		})
+	]);
 
+	const query = protectLocalOnlyNotes ? {} : {
+		localOnly: { $ne: true }
+	};
 	const conversation: INote[] = [];
 	let i = 0;
 
 	async function get(id: any) {
-		i++;
-		const p = await Note.findOne({ _id: id });
+		const p = await Note.findOne({ ...query, _id: id });
 
-		if (i > ps.offset) {
+		if (!p) {
+			return;
+		}
+
+		if (++i > ps.offset) {
 			conversation.push(p);
 		}
 
@@ -82,5 +94,7 @@ export default define(meta, async (ps, user) => {
 		await get(note.replyId);
 	}
 
-	return await packMany(conversation, user);
+	return await packMany(conversation, user, {
+		unauthenticated: protectLocalOnlyNotes
+	});
 });

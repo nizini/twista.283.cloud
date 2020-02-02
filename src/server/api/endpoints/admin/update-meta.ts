@@ -41,6 +41,13 @@ export const meta = {
 			}
 		},
 
+		protectLocalOnlyNotes: {
+			validator: $.optional.nullable.bool,
+			desc: {
+				'ja-JP': '公開範囲がローカルのみの投稿をActivityPub経由以外からも保護するか否か'
+			}
+		},
+
 		enableEmojiReaction: {
 			validator: $.optional.nullable.bool,
 			desc: {
@@ -363,6 +370,10 @@ export default define(meta, async (ps) => {
 
 	if (typeof ps.disableGlobalTimeline === 'boolean') {
 		set.disableGlobalTimeline = ps.disableGlobalTimeline;
+	}
+
+	if (typeof ps.protectLocalOnlyNotes === 'boolean') {
+		set.protectLocalOnlyNotes = ps.protectLocalOnlyNotes;
 	}
 
 	if (typeof ps.enableEmojiReaction === 'boolean') {

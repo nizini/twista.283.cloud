@@ -1,5 +1,5 @@
 meta:
-  lang: "日本語"
+  lang: "日本語(プロラボ)"
   divider: ""
 
 common:
@@ -115,9 +115,9 @@ common:
     followers-desc: "自分のフォロワーにのみ公開"
     specified: "ダイレクト"
     specified-desc: "指定したユーザーにのみ公開"
-    local-public: "公開 (ローカルのみ)"
-    local-home: "ホーム (ローカルのみ)"
-    local-followers: "フォロワー (ローカルのみ)"
+    local-public: "公開 (SJ教室のみ)"
+    local-home: "ホーム (SJ教室のみ)"
+    local-followers: "フォロワー (SJ教室のみ)"
 
   note-placeholders:
     a: "今どうしてる？"
@@ -130,7 +130,7 @@ common:
   settings: "設定"
   _settings:
     profile: "プロフィール"
-    notification: "通知"
+    notification: "マサカリ"
     apps: "アプリ"
     tags: "ハッシュタグ"
     mute-and-block: "ミュート/ブロック"
@@ -197,7 +197,7 @@ common:
     timeline: "タイムライン"
     show-my-renotes: "自分の行ったRenoteをタイムラインに表示する"
     show-renoted-my-notes: "自分の投稿のRenoteをタイムラインに表示する"
-    show-local-renotes: "ローカルの投稿のRenoteをタイムラインに表示する"
+    show-local-renotes: "SJ教室の投稿のRenoteをタイムラインに表示する"
     remain-deleted-note: "削除された投稿を表示し続ける"
     sound: "サウンド"
     enable-sounds: "サウンドを有効にする"
@@ -225,7 +225,7 @@ common:
     post-style: "投稿の表示スタイル"
     post-style-standard: "標準"
     post-style-smart: "スマート"
-    notification-position: "通知の表示"
+    notification-position: "マサカリの表示"
     notification-position-bottom: "下"
     notification-position-top: "上"
     disable-via-mobile: "「モバイルからの投稿」フラグを付けない"
@@ -240,12 +240,12 @@ common:
   update-available-title: "更新があります"
   update-available: "Misskeyの新しいバージョンがあります({newer}。現在{current}を利用中)。ページを再度読み込みすると更新が適用されます。"
   my-token-regenerated: "あなたのトークンが更新されたのでサインアウトします。"
-  verified-user: "公式アカウント"
+  verified-user: "重役アカウント"
   hide-password: "パスワードを隠す"
   show-password: "パスワードを表示する"
 
   do-not-use-in-production: "これは開発ビルドです。本番環境で使用しないでください。"
-  user-suspended: "このユーザーは凍結されています。"
+  user-suspended: "このユーザーはシベリア送りされています。"
   is-remote-user: "このユーザー情報は不正確な可能性があります。"
   is-remote-post: "この投稿情報はコピーです。"
   view-on-remote: "正確な情報を見る"
@@ -284,7 +284,7 @@ common:
     slideshow: "スライドショー"
     version: "バージョン"
     broadcast: "ブロードキャスト"
-    notifications: "通知"
+    notifications: "マサカリ"
     users: "おすすめユーザー"
     polls: "アンケート"
     post-form: "投稿フォーム"
@@ -307,8 +307,8 @@ auth/views/form.vue:
   following-write: "フォローしたりフォロー解除する。"
   drive-read: "ドライブを見る。"
   drive-write: "ドライブを操作する。"
-  notification-read: "通知を見る。"
-  notification-write: "通知を操作する。"
+  notification-read: "マサカリを見る。"
+  notification-write: "マサカリを操作する。"
   cancel: "キャンセル"
   accept: "アクセスを許可"
 
@@ -324,7 +324,7 @@ auth/views/index.vue:
   sign-in: "サインインしてください"
 
 common/views/pages/explore.vue:
-  verified-users: "公式アカウント"
+  verified-users: "重役アカウント"
   popular-users: "人気のユーザー"
   recently-updated-users: "最近投稿したユーザー"
   recently-registered-users: "新規ユーザー"
@@ -529,10 +529,10 @@ common/views/components/user-menu.vue:
   unsilence: "サイレンス解除"
   silence-confirm: "このユーザーをサイレンスしますか？"
   unsilence-confirm: "このユーザーをサイレンス解除しますか？"
-  suspend: "凍結"
-  unsuspend: "凍結解除"
-  suspend-confirm: "このユーザーを凍結しますか？"
-  unsuspend-confirm: "このユーザーを凍結解除しますか？"
+  suspend: "シベリアに送る"
+  unsuspend: "シベリアから呼び戻す"
+  suspend-confirm: "このユーザーをシベリア送りにしますか？"
+  unsuspend-confirm: "このユーザーをシベリアから呼び戻しますか？"
 
 common/views/components/poll.vue:
   vote-to: "「{}」に投票する"
@@ -627,12 +627,12 @@ common/views/components/stream-indicator.vue:
   connected: "接続完了"
 
 common/views/components/notification-settings.vue:
-  title: "通知"
-  mark-as-read-all-notifications: "すべての通知を既読にする"
+  title: "マサカリ"
+  mark-as-read-all-notifications: "すべてのマサカリを既読にする"
   mark-as-read-all-unread-notes: "すべての投稿を既読にする"
   mark-as-read-all-talk-messages: "すべてのトークを既読にする"
   auto-watch: "投稿の自動ウォッチ"
-  auto-watch-desc: "リアクションしたり返信したりした投稿に関する通知を自動的に受け取るようにします。"
+  auto-watch-desc: "リアクションしたり返信したりした投稿に関するマサカリを自動的に受け取るようにします。"
 
 common/views/components/integration-settings.vue:
   title: "サービス連携"
@@ -667,10 +667,10 @@ common/views/components/visibility-chooser.vue:
   followers-desc: "自分のフォロワーにのみ公開"
   specified: "ダイレクト"
   specified-desc: "指定したユーザーにのみ公開"
-  local-public: "公開 (ローカルのみ)"
+  local-public: "公開 (SJ教室のみ)"
   local-public-desc: "リモートへは公開しない"
-  local-home: "ホーム (ローカルのみ)"
-  local-followers: "フォロワー (ローカルのみ)"
+  local-home: "ホーム (SJ教室のみ)"
+  local-followers: "フォロワー (SJ教室のみ)"
 
 common/views/components/trends.vue:
   count: "{}人が投稿"
@@ -793,7 +793,7 @@ common/views/widgets/tips.vue:
   tips-line21: "APIを利用してbotの開発なども行えます"
   tips-line23: "藍かわいいよ藍"
   tips-line24: "Misskeyは2014年にサービスを開始しました"
-  tips-line25: "対応ブラウザではMisskeyを開いていなくても通知を受け取れます"
+  tips-line25: "対応ブラウザではMisskeyを開いていなくてもマサカリを受け取れます"
 
 common/views/pages/not-found.vue:
   page-not-found: "ページが見つかりませんでした"
@@ -980,7 +980,7 @@ desktop/views/components/post-form.vue:
   create-poll: "アンケートを作成"
   text-remain: "残り{}文字"
   recent-tags: "最近"
-  local-only-message: "この投稿はローカルにのみ公開されます"
+  local-only-message: "この投稿はSJ教室にのみ公開されます"
   click-to-tagging: "クリックでタグ付け"
   visibility: "公開範囲"
   geolocation-alert: "お使いの端末は位置情報に対応していません"
@@ -1103,11 +1103,11 @@ desktop/views/components/taskmanager.vue:
 
 desktop/views/components/timeline.vue:
   home: "ホーム"
-  local: "ローカル"
+  local: "SJ教室"
   hybrid: "ソーシャル"
   global: "グローバル"
   mentions: "あなた宛て"
-  messages: "ダイレクト投稿"
+  messages: "メッセージ"
   list: "リスト"
   hashtag: "ハッシュタグ"
   add-tag-timeline: "ハッシュタグを追加"
@@ -1128,7 +1128,7 @@ desktop/views/components/ui.header.nav.vue:
   game: "ゲーム"
 
 desktop/views/components/ui.header.notifications.vue:
-  title: "通知"
+  title: "マサカリ"
 
 desktop/views/components/ui.header.post.vue:
   post: "新規投稿"
@@ -1212,7 +1212,7 @@ admin/views/instance.vue:
   drive-config: "ドライブの設定"
   cache-remote-files: "リモートのファイルをキャッシュする"
   cache-remote-files-desc: "この設定を無効にすると、リモートファイルをキャッシュせず直リンクするようになります。そのためサーバーのストレージを節約できますが、プライバシー設定で直リンクを無効にしているユーザーにはファイルが見えなくなったり、サムネイルが生成されないので通信量が増加します。通常はこの設定をオンにしておくことをおすすめします。"
-  local-drive-capacity-mb: "ローカルユーザーひとりあたりのドライブ容量"
+  local-drive-capacity-mb: "SJ教室ユーザーひとりあたりのドライブ容量"
   remote-drive-capacity-mb: "リモートユーザーひとりあたりのドライブ容量"
   mb: "メガバイト単位"
   recaptcha-config: "reCAPTCHAの設定"
@@ -1242,10 +1242,10 @@ admin/views/instance.vue:
   proxy-account-warn: "アカウントは自動で作られないため、そのユーザー名のアカウントを予め作成しておく必要があります。"
   max-note-text-length: "投稿の最大文字数"
   disable-registration: "ユーザー登録の受付を停止する"
-  disable-local-timeline: "ローカルタイムラインを無効にする"
+  disable-local-timeline: "SJ教室タイムラインを無効にする"
   disable-global-timeline: "グローバルタイムラインを無効にする"
   disabling-timelines-info: "これらのタイムラインを無効にしても、管理者およびモデレーターは引き続き利用できます。"
-  protect-local-only-notes: "公開範囲がローカルのみの投稿をActivityPub経由以外からも保護する"
+  protect-local-only-notes: "公開範囲がSJ教室のみの投稿をActivityPub経由以外からも保護する"
   enable-emoji-reaction: "リアクションに絵文字を使えるようにする"
   use-star-for-reaction-fallback: "不明なリアクションのフォールバックに star を使う"
   invite: "招待"
@@ -1270,7 +1270,7 @@ admin/views/instance.vue:
   smtp-pass: "SMTPパスワード"
   serviceworker-config: "ServiceWorker"
   enable-serviceworker: "ServiceWorkerを有効にする"
-  serviceworker-info: "プッシュ通知を行うには有効する必要があります。"
+  serviceworker-info: "プッシュマサカリを行うには有効する必要があります。"
   vapid-publickey: "VAPID公開鍵"
   vapid-privatekey: "VAPID秘密鍵"
   vapid-info: "ServiceWorkerを有効にする場合、VAPIDキーペアを生成する必要があります。シェルで次のようにします:"
@@ -1288,7 +1288,7 @@ admin/views/charts.vue:
     federation-instances: "インスタンスの増減"
     federation-instances-total: "インスタンスの積算"
     notes: "投稿の増減 (統合)"
-    local-notes: "投稿の増減 (ローカル)"
+    local-notes: "投稿の増減 (SJ教室)"
     remote-notes: "投稿の増減 (リモート)"
     notes-total: "投稿の積算"
     users: "ユーザーの増減"
@@ -1315,8 +1315,8 @@ admin/views/drive.vue:
     sizeDesc: "サイズが大きい順"
   origin:
     title: "オリジン"
-    combined: "ローカル+リモート"
-    local: "ローカル"
+    combined: "SJ教室+リモート"
+    local: "SJ教室"
     remote: "リモート"
   delete: "削除"
   deleted: "削除しました"
@@ -1333,22 +1333,22 @@ admin/views/users.vue:
   reset-password: "パスワードをリセット"
   reset-password-confirm: "パスワードをリセットしますか？"
   password-updated: "パスワードは現在「{password}」です"
-  suspend: "凍結"
-  suspend-confirm: "凍結しますか？"
-  suspended: "凍結しました"
-  unsuspend: "凍結の解除"
-  unsuspend-confirm: "凍結を解除しますか？"
-  unsuspended: "凍結を解除しました"
+  suspend: "シベリア送り"
+  suspend-confirm: "シベリア送りにしますか？"
+  suspended: "シベリア送りにしました"
+  unsuspend: "シベリア送りの解除"
+  unsuspend-confirm: "シベリア送りを解除しますか？"
+  unsuspended: "シベリア送りを解除しました"
   make-silence: "サイレンス"
   silence-confirm: "サイレンスしますか？"
   unmake-silence: "サイレンスの解除"
   unsilence-confirm: "サイレンスを解除しますか？"
-  verify: "公式アカウントにする"
-  verify-confirm: "公式アカウントにしますか？"
-  verified: "公式アカウントにしました"
-  unverify: "公式アカウントを解除する"
-  unverify-confirm: "公式アカウントを解除しますか？"
-  unverified: "公式アカウントを解除しました"
+  verify: "重役アカウントにする"
+  verify-confirm: "重役アカウントにしますか？"
+  verified: "重役アカウントにしました"
+  unverify: "重役アカウントを解除する"
+  unverify-confirm: "重役アカウントを解除しますか？"
+  unverified: "重役アカウントを解除しました"
   update-remote-user: "リモートユーザー情報の更新"
   remote-user-updated: "リモートユーザー情報を更新しました"
   users:
@@ -1365,13 +1365,13 @@ admin/views/users.vue:
       admin: "管理者"
       moderator: "モデレーター"
       adminOrModerator: "管理者+モデレーター"
-      verified: "公式アカウント"
+      verified: "重役アカウント"
       silenced: "サイレンス済み"
-      suspended: "凍結済み"
+      suspended: "シベリア送り済み"
     origin:
       title: "オリジン"
-      combined: "ローカル+リモート"
-      local: "ローカル"
+      combined: "SJ教室+リモート"
+      local: "SJ教室"
       remote: "リモート"
     createdAt: "登録日時"
     updatedAt: "更新日時"
@@ -1546,7 +1546,7 @@ desktop/views/pages/user/user.timeline.vue:
   my-posts: "私の投稿"
 
 desktop/views/widgets/notifications.vue:
-  title: "通知"
+  title: "マサカリ"
 
 desktop/views/widgets/polls.vue:
   title: "アンケート"
@@ -1664,7 +1664,7 @@ mobile/views/components/ui.header.vue:
 
 mobile/views/components/ui.nav.vue:
   timeline: "タイムライン"
-  notifications: "通知"
+  notifications: "マサカリ"
   follow-requests: "フォロー申請"
   search: "検索"
   user-lists: "リスト"
@@ -1688,11 +1688,11 @@ mobile/views/pages/following.vue:
 
 mobile/views/pages/home.vue:
   home: "ホーム"
-  local: "ローカル"
+  local: "SJ教室"
   hybrid: "ソーシャル"
   global: "グローバル"
   mentions: "あなた宛て"
-  messages: "ダイレクト投稿"
+  messages: "メッセージ"
 
 mobile/views/pages/tag.vue:
   no-posts-found: "ハッシュタグ「{q}」が付けられた投稿は見つかりませんでした。"
@@ -1758,13 +1758,13 @@ mobile/views/pages/user/home.photos.vue:
 deck:
   widgets: "ウィジェット"
   home: "ホーム"
-  local: "ローカル"
+  local: "SJ教室"
   hybrid: "ソーシャル"
   hashtag: "ハッシュタグ"
   global: "グローバル"
   mentions: "あなた宛て"
   direct: "ダイレクト投稿"
-  notifications: "通知"
+  notifications: "マサカリ"
   list: "リスト"
   select-list: "リストを選択してください"
   swap-left: "左に移動"
@@ -1846,5 +1846,5 @@ dev/views/new-app.vue:
   following-write: "フォローしたりフォロー解除する。"
   drive-read: "ドライブを見る。"
   drive-write: "ドライブを操作する。"
-  notification-read: "通知を見る。"
-  notification-write: "通知を操作する。"
+  notification-read: "マサカリを見る。"
+  notification-write: "マサカリを操作する。"

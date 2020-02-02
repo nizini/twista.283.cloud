@@ -19,14 +19,20 @@ export type IBlocking = {
 
 export const packMany = (
 	blockings: (string | mongo.ObjectID | IBlocking)[],
-	me?: string | mongo.ObjectID | IUser
+	me?: string | mongo.ObjectID | IUser,
+	options?: {
+		unauthenticated?: boolean;
+	}
 ) => {
-	return Promise.all(blockings.map(x => pack(x, me)));
+	return Promise.all(blockings.map(x => pack(x, me, options)));
 };
 
 export const pack = (
 	blocking: any,
-	me?: any
+	me?: any,
+	options?: {
+		unauthenticated?: boolean;
+	}
 ) => new Promise<any>(async (resolve, reject) => {
 	let _blocking: any;
 
@@ -49,7 +55,8 @@ export const pack = (
 
 	// Populate blockee
 	_blocking.blockee = await packUser(_blocking.blockeeId, me, {
-		detail: true
+		detail: true,
+		unauthenticated: options && options.unauthenticated
 	});
 
 	resolve(_blocking);

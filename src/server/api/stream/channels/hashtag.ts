@@ -3,6 +3,7 @@ import Mute from '../../../../models/mute';
 import { pack } from '../../../../models/note';
 import shouldMuteThisNote from '../../../../misc/should-mute-this-note';
 import Channel from '../channel';
+import fetchMeta from '../../../../misc/fetch-meta';
 
 export default class extends Channel {
 	public readonly chName = 'hashtag';
@@ -23,16 +24,20 @@ export default class extends Channel {
 			const noteTags = note.tags.map((t: string) => t.toLowerCase());
 			const matched = q.some(tags => tags.every(tag => noteTags.includes(tag.toLowerCase())));
 			if (!matched) return;
+			const { protectLocalOnlyNotes } = this.user ? { protectLocalOnlyNotes: false } : await fetchMeta();
 
 			// Renoteなら再pack
 			if (note.renoteId != null) {
 				note.renote = await pack(note.renoteId, this.user, {
-					detail: true
+					detail: true,
+					unauthenticated: protectLocalOnlyNotes
 				});
 			}
 
 			// 流れてきたNoteがミュートしているユーザーが関わるものだったら無視する
 			if (shouldMuteThisNote(note, mutedUserIds)) return;
+
+			if (protectLocalOnlyNotes && note.localOnly) return;
 
 			this.send('note', note);
 		});

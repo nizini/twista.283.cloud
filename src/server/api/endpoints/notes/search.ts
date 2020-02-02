@@ -5,6 +5,7 @@ import { packMany } from '../../../../models/note';
 import es from '../../../../db/elasticsearch';
 import define from '../../define';
 import { ApiError } from '../../error';
+import fetchMeta from '../../../../misc/fetch-meta';
 
 export const meta = {
 	desc: {
@@ -70,6 +71,8 @@ export default define(meta, async (ps, me) => {
 		}
 	});
 
+	const { protectLocalOnlyNotes } = me ? { protectLocalOnlyNotes: false } : await fetchMeta();
+
 	if (response.hits.total === 0) {
 		return [];
 	}
@@ -80,12 +83,17 @@ export default define(meta, async (ps, me) => {
 	const notes = await Note.find({
 		_id: {
 			$in: hits
-		}
+		},
+		...(protectLocalOnlyNotes ? {
+			localOnly: { $ne: true }
+		} : {})
 	}, {
 		sort: {
 			_id: -1
 		}
 	});
 
-	return await packMany(notes, me);
+	return await packMany(notes, me, {
+		unauthenticated: protectLocalOnlyNotes
+	});
 });

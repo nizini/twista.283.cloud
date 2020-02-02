@@ -7,6 +7,7 @@ import { maximum } from '../../../../prelude/array';
 import { getHideUserIds } from '../../common/get-hide-users';
 import { ApiError } from '../../error';
 import { getUser } from '../../common/getters';
+import fetchMeta from '../../../../misc/fetch-meta';
 
 export const meta = {
 	tags: ['users'],
@@ -46,6 +47,8 @@ export const meta = {
 };
 
 export default define(meta, async (ps, me) => {
+	const { protectLocalOnlyNotes } = me ? { protectLocalOnlyNotes: false } : await fetchMeta();
+
 	// Lookup user
 	const user = await getUser(ps.userId).catch(e => {
 		if (e.id === '15348ddd-432d-49c2-8a5a-8069753becff') throw new ApiError(meta.errors.noSuchUser);
@@ -114,7 +117,10 @@ export default define(meta, async (ps, me) => {
 
 	// Make replies object (includes weights)
 	const repliesObj = await Promise.all(topRepliedUsers.map(async (user) => ({
-		user: await pack(user, me, { detail: true }),
+		user: await pack(user, me, {
+			detail: true,
+			unauthenticated: protectLocalOnlyNotes
+		}),
 		weight: repliedUsers[user] / peak
 	})));
 

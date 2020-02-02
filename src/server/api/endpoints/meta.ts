@@ -70,6 +70,10 @@ export const meta = {
 				type: 'boolean',
 				description: 'Whether disabled GTL.',
 			},
+			protectLocalOnlyNotes: {
+				type: 'boolean',
+				description: 'Whether the instance policy prohibits to fetch notes marked as local only via unauthenticated APIs.',
+			},
 			enableEmojiReaction: {
 				type: 'boolean',
 				description: 'Whether enabled emoji reaction.',
@@ -111,6 +115,7 @@ export default define(meta, async (ps, me) => {
 		disableRegistration: instance.disableRegistration,
 		disableLocalTimeline: instance.disableLocalTimeline,
 		disableGlobalTimeline: instance.disableGlobalTimeline,
+		protectLocalOnlyNotes: instance.protectLocalOnlyNotes,
 		enableEmojiReaction: instance.enableEmojiReaction,
 		driveCapacityPerLocalUserMb: instance.localDriveCapacityMb,
 		driveCapacityPerRemoteUserMb: instance.remoteDriveCapacityMb,
@@ -138,6 +143,7 @@ export default define(meta, async (ps, me) => {
 			registration: !instance.disableRegistration,
 			localTimeLine: !instance.disableLocalTimeline,
 			globalTimeLine: !instance.disableGlobalTimeline,
+			strictLocalOnly: instance.protectLocalOnlyNotes,
 			elasticsearch: config.elasticsearch ? true : false,
 			recaptcha: instance.enableRecaptcha,
 			objectStorage: config.drive && config.drive.storage === 'minio',
